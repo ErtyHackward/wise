@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseBlazor", "WiseBlazor\Wi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseApi", "WiseApi\WiseApi.csproj", "{3BBA1A2A-416D-4A64-B4B4-7131A390DB9D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseDomain", "WiseDomain\WiseDomain\WiseDomain.csproj", "{889EC28E-3EFC-4BDF-8C05-C159BE41B5FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseDomain", "WiseDomain\WiseDomain.csproj", "{889EC28E-3EFC-4BDF-8C05-C159BE41B5FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
