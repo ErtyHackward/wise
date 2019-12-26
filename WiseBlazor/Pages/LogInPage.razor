@@ -1,0 +1,35 @@
+﻿@layout LoginLayout
+@page "/login"
+
+<div class="main-signin">
+    <form class="form-signin">
+        <div class="text-center mb-4">
+            <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 font-weight-normal">Админка управления </h1>
+            <p> Доступ в админку можно запросить у @@hackward <a href="/">Только для отладки, перейти на главную без авторизации</a></p>
+        </div>
+
+        <div class="form-label-group">
+            <input id="inputLogin" class="form-control" placeholder="Логин от AD" required autofocus>
+            <label for="inputEmail">Логин от AD</label>
+        </div>
+
+        <div class="form-label-group">
+            <input type="password" id="inputPassword" class="form-control" placeholder="Пароль" required>
+            <label for="inputPassword">Пароль</label>
+        </div>
+
+        <div class="checkbox mb-3">
+            <label>
+                <input type="checkbox" value="remember-me"> Запомнить меня
+            </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
+        <p class="mt-5 mb-3 text-muted text-center">&copy; 2019</p>
+    </form>
+</div>
+
+
+@code {
+
+}

@@ -1,0 +1,177 @@
+﻿@page "/report/{Id:int}/edit"
+@page "/report/new"
+@inject HttpClient Http
+@inject Backend Backend
+@inject ILogger<Backend> Logger
+@inject NavigationManager Nav
+@inject IModalService Modal
+
+    <div class="page">
+        @if (Id == 0)
+        {
+            <h1>Создание нового отчета</h1>
+        }
+        else
+        {
+            <h1>Редактирование отчета</h1>
+        }
+
+        <div class="report-edit">
+            <input class="form-control" id="titleEdit" type="text" placeholder="Название отчета" @bind="Title" />
+            <textarea class="form-control" id="descriptionTextArea" placeholder="Описание для людей" @bind="Description"></textarea>
+            <div>
+                <select class="form-control" id="providerSelect" @bind="Provider">
+                    @if (_providers == null)
+                    {
+                        <option selected disabled>Загрузка...</option>
+                    }
+                    else
+                    {
+                        <option selected disabled>Выбери источник</option>
+                        @foreach (var provider in _providers)
+                        {
+                            <option value="@provider.DataProviderConfigurationId">@provider.Title</option>
+                        }
+                    }
+                </select>
+            </div>
+            <textarea class="form-control" id="sqlTextArea" placeholder="Текст SQL запроса" @bind="Query"></textarea>
+
+            <div>
+                <button class="btn btn-primary"
+                        @onclick="@(e => TestQuery())">
+                    <span class="oi oi-check" aria-hidden="true"></span> Проверить запрос
+                </button>
+                <button class="btn btn-primary"
+                        @onclick="@(e => UpdateReport())">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Добавить
+                </button>
+                <button class="btn btn-danger"
+                        @onclick="@(e => Nav.NavigateTo("/"))">
+                    <span class="oi oi-trash" aria-hidden="true"></span> Удалить
+                </button>
+            </div>
+        </div>
+        @if (_displayPopoverId != null)
+        {
+            if (_switch) // fooling the blazor, we need to re-add popover to the DOM, and it is not possible without js right now
+            {
+                <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                    <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+                </BSPopover>
+            }
+            else
+            {
+                <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                    <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+                </BSPopover>
+            }
+        }
+    </div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Query { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public int Provider { get; set; }
+
+
+
+    private List<DataProviderConfiguration> _providers;
+
+    private ServerResponse<ReportResponse> _serverTestResponse;
+
+    private string _displayPopoverId;
+    private string _popoverMessage;
+    private bool _switch;
+
+    private void ShowWarningPopover(string elementId, string message)
+    {
+        if (_displayPopoverId != null)
+        {
+            _switch = !_switch;
+        }
+
+        _displayPopoverId = elementId;
+        _popoverMessage = message;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Backend.GetApiAsync<List<DataProviderConfiguration>>("providers");
+        _providers = resp.Response;
+    }
+
+    private async void TestQuery()
+    {
+        if (!ValidateQuery()) 
+            return;
+
+        _displayPopoverId = null;
+
+        var config = new ReportConfiguration()
+        {
+            Query = Query,
+            DataProvider = new DataProviderConfiguration { DataProviderConfigurationId = Provider }
+        };
+
+        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", config);
+
+        var parameters = new ModalParameters();
+        parameters.Add("ReportResponse", _serverTestResponse);
+
+        Modal.Show<QueryResultComponent>("Результат запроса", parameters);
+    }
+
+    private bool ValidateQuery()
+    {
+        if (string.IsNullOrWhiteSpace(Query))
+        {
+            ShowWarningPopover("sqlTextArea", "Напиши SQL запрос!");
+            return false;
+        }
+        if (Provider == 0)
+        {
+            ShowWarningPopover("providerSelect", "Выбери провайдер!");
+            return false;
+        }
+        return true;
+    }
+
+    private async void UpdateReport()
+    {
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            ShowWarningPopover("titleEdit", "Заполни название!");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(Description))
+        {
+            ShowWarningPopover("descriptionTextArea", "Заполни описание!");
+            return;
+        }
+        if (!ValidateQuery()) 
+            return;
+
+        _displayPopoverId = null;
+        StateHasChanged();
+
+        //
+        //_serverResponse = null;
+        //_serverResponse = await Backend.RequestAsync<List<ReportConfiguration>>("http://localhost:64460/api/reportconfigs");
+        //StateHasChanged();
+    }
+}
+

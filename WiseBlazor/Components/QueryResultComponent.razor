@@ -1,0 +1,45 @@
+﻿@if (_response.Success && _response.Response?.ErrorText == null)
+{
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                @foreach (var columnName in _response.Response.Columns)
+                {
+                    <th>@columnName</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in _response.Response.PreviewValues)
+            {
+                <tr>
+                    @foreach (var item in row)
+                    {
+                        <td class="trim-td">@item</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-danger sql-error">
+        <h4 class="alert-heading">Ошибка при выполнении запроса</h4>
+        <hr>
+        @_response.ErrorText@_response.Response?.ErrorText
+    </div>
+}
+
+@code {
+
+    [CascadingParameter]
+    ModalParameters Parameters { get; set; }
+
+    ServerResponse<ReportResponse> _response;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _response = Parameters.Get<ServerResponse<ReportResponse>>("ReportResponse");
+    }
+}
