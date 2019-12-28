@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,33 @@ namespace WiseApi.Controllers
         public async Task<ActionResult<IEnumerable<DataProviderConfiguration>>> GetDataProviderConfigurations()
         {
             return await _context.DataProviderConfigurations.ToListAsync();
+        }
+
+        // POST: api/providers/test
+        [HttpPost(), Route("test")]
+        public async Task<ActionResult<ReportResponse>> TestProvider([FromBody] DataProviderConfiguration config)
+        {
+            var resp = new ReportResponse();
+
+            try
+            {
+                var connection = Activator.CreateInstance(Type.GetType(config.DataProviderType)) as IDbConnection;
+
+                connection.ConnectionString = config.ConnectionString;
+                connection.Open();
+
+                using (connection)
+                {
+                    if (connection.State == ConnectionState.Open)
+                        resp.ReportTitle = "Соединение установлено успешно";
+                }
+            }
+            catch (Exception x)
+            {
+                resp.ErrorText = x.Message;
+            }
+
+            return resp;
         }
 
         // GET: api/providers/5

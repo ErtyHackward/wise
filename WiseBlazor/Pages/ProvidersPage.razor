@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @inject Backend Backend
 @inject ILogger<Backend> Logger
+@inject NavigationManager Nav
 
 <div class="page">
     <h1>Источники данных</h1>
@@ -39,10 +40,17 @@
             </table>
         }
 
-        <button class="btn btn-primary"
-                @onclick="@(e => UpdateReport())">
-            Обновить
-        </button>
+        <div>
+            <button class="btn btn-primary"
+                    @onclick="@(e => UpdateReport())">
+                Обновить
+            </button>
+            <button class="btn btn-primary"
+                    @onclick="@(e => Nav.NavigateTo("/providers/new"))">
+                <span class="oi oi-plus" aria-hidden="true"></span> Добавить
+            </button>
+        </div>
+
 
     }
 </div>
@@ -58,7 +66,7 @@
     private async void UpdateReport()
     {
         _serverResponse = null;
-        _serverResponse = await Backend.GetAsync<List<DataProviderConfiguration>>("http://localhost:64460/api/providers");
+        _serverResponse = await Backend.GetApiAsync<List<DataProviderConfiguration>>("providers");
         StateHasChanged();
     }
 }

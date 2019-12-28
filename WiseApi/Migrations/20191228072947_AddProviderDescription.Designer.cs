@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WiseApi;
 
 namespace WiseApi.Migrations
 {
     [DbContext(typeof(WiseContext))]
-    partial class WiseContextModelSnapshot : ModelSnapshot
+    [Migration("20191228072947_AddProviderDescription")]
+    partial class AddProviderDescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

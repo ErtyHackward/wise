@@ -1,0 +1,153 @@
+﻿@page "/providers/{Id:int}/edit"
+@page "/providers/new"
+@inject Backend Backend
+@inject ILogger<Backend> Logger
+@inject NavigationManager Nav
+@inject IModalService Modal
+
+<div class="page">
+    @if (Id == 0)
+    {
+        <h1>Создание нового источника данных</h1>
+    }
+    else
+    {
+        <h1>Редактирование источника данных</h1>
+    }
+
+<div class="report-edit">
+    <input class="form-control" id="titleEdit" type="text" placeholder="Название истоничка" @bind="_providerConfig.Title" />
+    <textarea class="form-control" id="descriptionTextArea" placeholder="Описание для людей" @bind="_providerConfig.Description"></textarea>
+    <input class="form-control" id="typeEdit" type="text" placeholder=".net Тип провайдера" @bind="_providerConfig.DataProviderType" />
+    <textarea class="form-control" id="connectionStringTextArea" placeholder="Строка подключения" @bind="_providerConfig.ConnectionString"></textarea>
+
+    <div>
+        <button class="btn btn-primary"
+                @onclick="@(e => TestConnection())">
+            <span class="oi oi-check" aria-hidden="true"></span> Проверить подключение
+        </button>
+        @if (Id == 0)
+        {
+            <button class="btn btn-success"
+                    @onclick="@(e => UpdateProvider())">
+                <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
+            </button>
+        }
+        <button class="btn btn-danger"
+                @onclick="@(e => Nav.NavigateTo("/"))">
+            <span class="oi oi-trash" aria-hidden="true"></span> Удалить
+        </button>
+    </div>
+</div>
+    @if (_displayPopoverId != null)
+    {
+        if (_switch) // fooling the blazor, we need to re-add popover to the DOM, and it is not possible without js right now
+        {
+            <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+            </BSPopover>
+        }
+        else
+        {
+            <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+            </BSPopover>
+        }
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id
+    {
+        get { return _providerConfig.DataProviderConfigurationId; }
+        set { _providerConfig.DataProviderConfigurationId = value; }
+    }
+
+    private ServerResponse<ReportResponse> _serverTestResponse;
+
+    private DataProviderConfiguration _providerConfig = new DataProviderConfiguration();
+
+    private string _displayPopoverId;
+    private string _popoverMessage;
+    private bool _switch;
+
+    private void ShowWarningPopover(string elementId, string message)
+    {
+        if (_displayPopoverId != null)
+        {
+            _switch = !_switch;
+        }
+
+        _displayPopoverId = elementId;
+        _popoverMessage = message;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            Backend.GetApiAsync<DataProviderConfiguration>($"providers/{Id}").ContinueWith(t =>
+            {
+                InvokeAsync(() =>
+                {
+                    _providerConfig = t.Result.Response;
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private async void TestConnection()
+    {
+        if (!ValidateProvider())
+            return;
+
+        _displayPopoverId = null;
+
+
+        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("providers/test", _providerConfig);
+
+        var parameters = new ModalParameters();
+        parameters.Add("ReportResponse", _serverTestResponse);
+
+        Modal.Show<QueryResultComponent>("Результат запроса", parameters);
+    }
+
+    private bool ValidateProvider()
+    {
+        if (string.IsNullOrWhiteSpace(_providerConfig.ConnectionString))
+        {
+            ShowWarningPopover("connectionStringTextArea", "Напиши строку подключения");
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(_providerConfig.DataProviderType))
+        {
+            ShowWarningPopover("typeEdit", "Укажи тип провайдера");
+            return false;
+        }
+        return true;
+    }
+
+    private async void UpdateProvider()
+    {
+        if (string.IsNullOrWhiteSpace(_providerConfig.Title))
+        {
+            ShowWarningPopover("titleEdit", "Заполни название!");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_providerConfig.Description))
+        {
+            ShowWarningPopover("descriptionTextArea", "Заполни описание!");
+            return;
+        }
+        if (!ValidateProvider())
+            return;
+
+        _displayPopoverId = null;
+        StateHasChanged();
+    }
+}
+
