@@ -1,0 +1,42 @@
+﻿@page "/reports/{Id:int}"
+@inject Backend Backend
+@inject ILogger<Backend> Logger
+@inject NavigationManager Nav
+
+    <div class="page">
+        @if (_report == null)
+        {
+            <p><em>Загрузка...</em></p>
+        }
+        else
+        {
+            <h5>@_report.Title</h5>
+            <span>@_report.Description</span>
+            <div>
+                <button class="btn btn-primary">
+                    <span class="oi oi-media-play" aria-hidden="true"></span> Выполнить запрос
+                </button>
+                <button class="btn btn-primary"
+                        @onclick="@(e => Nav.NavigateTo($"/reports/{Id}/edit"))">
+                    <span class="oi oi-pencil" aria-hidden="true"></span> Изменить
+                </button>
+            </div>
+        }
+    </div>
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private ServerResponse<ReportConfiguration> _serverResponse;
+    private ReportConfiguration _report;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Backend.GetApiAsync<ReportConfiguration>($"reports/{Id}");
+        _report = resp.Response;
+    }
+
+}

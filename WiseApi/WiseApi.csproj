@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WiseDomain\WiseDomain\WiseDomain.csproj" />
+    <ProjectReference Include="..\WiseDomain\WiseDomain.csproj" />
   </ItemGroup>
 
 </Project>

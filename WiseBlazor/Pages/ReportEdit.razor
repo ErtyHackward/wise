@@ -1,6 +1,5 @@
-﻿@page "/report/{Id:int}/edit"
-@page "/report/new"
-@inject HttpClient Http
+﻿@page "/reports/{Id:int}/edit"
+@page "/reports/new"
 @inject Backend Backend
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
@@ -17,17 +16,17 @@
         }
 
         <div class="report-edit">
-            <input class="form-control" id="titleEdit" type="text" placeholder="Название отчета" @bind="Title" />
-            <textarea class="form-control" id="descriptionTextArea" placeholder="Описание для людей" @bind="Description"></textarea>
+            <input class="form-control" id="titleEdit" type="text" placeholder="Название отчета" @bind="_reportConfig.Title" />
+            <textarea class="form-control" id="descriptionTextArea" placeholder="Описание для людей" @bind="_reportConfig.Description"></textarea>
             <div>
-                <select class="form-control" id="providerSelect" @bind="Provider">
+                <select class="form-control" id="providerSelect" @bind="ProviderId">
                     @if (_providers == null)
                     {
                         <option selected disabled>Загрузка...</option>
                     }
                     else
                     {
-                        <option selected disabled>Выбери источник</option>
+                        <option disabled>Выбери источник</option>
                         @foreach (var provider in _providers)
                         {
                             <option value="@provider.DataProviderConfigurationId">@provider.Title</option>
@@ -35,17 +34,20 @@
                     }
                 </select>
             </div>
-            <textarea class="form-control" id="sqlTextArea" placeholder="Текст SQL запроса" @bind="Query"></textarea>
+            <textarea class="form-control" id="sqlTextArea" placeholder="Текст SQL запроса" @bind="_reportConfig.Query"></textarea>
 
             <div>
                 <button class="btn btn-primary"
                         @onclick="@(e => TestQuery())">
                     <span class="oi oi-check" aria-hidden="true"></span> Проверить запрос
                 </button>
-                <button class="btn btn-primary"
-                        @onclick="@(e => UpdateReport())">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Добавить
-                </button>
+                @if (Id == 0)
+                {
+                    <button class="btn btn-primary"
+                            @onclick="@(e => UpdateReport())">
+                        <span class="oi oi-plus" aria-hidden="true"></span> Добавить
+                    </button>
+                }
                 <button class="btn btn-danger"
                         @onclick="@(e => Nav.NavigateTo("/"))">
                     <span class="oi oi-trash" aria-hidden="true"></span> Удалить
@@ -72,25 +74,18 @@
 @code {
 
     [Parameter]
-    public int Id { get; set; }
+    public int Id {
+        get { return _reportConfig.ReportConfigurationId; }
+        set { _reportConfig.ReportConfigurationId = value; }
+    }
 
-    [Parameter]
-    public string Title { get; set; }
-
-    [Parameter]
-    public string Query { get; set; }
-
-    [Parameter]
-    public string Description { get; set; }
-
-    [Parameter]
-    public int Provider { get; set; }
-
-
+    public int ProviderId { get; set; }
 
     private List<DataProviderConfiguration> _providers;
 
     private ServerResponse<ReportResponse> _serverTestResponse;
+
+    private ReportConfiguration _reportConfig = new ReportConfiguration();
 
     private string _displayPopoverId;
     private string _popoverMessage;
@@ -110,24 +105,32 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (Id != 0)
+        {
+            Backend.GetApiAsync<ReportConfiguration>($"reports/{Id}").ContinueWith(t =>
+            {
+                InvokeAsync(() => { 
+                    _reportConfig = t.Result.Response;
+                    ProviderId = _reportConfig.DataProvider != null ? _reportConfig.DataProvider.DataProviderConfigurationId : 0;
+                    StateHasChanged();
+                });
+            });
+        }
         var resp = await Backend.GetApiAsync<List<DataProviderConfiguration>>("providers");
         _providers = resp.Response;
+
     }
 
     private async void TestQuery()
     {
-        if (!ValidateQuery()) 
+        if (!ValidateQuery())
             return;
 
         _displayPopoverId = null;
 
-        var config = new ReportConfiguration()
-        {
-            Query = Query,
-            DataProvider = new DataProviderConfiguration { DataProviderConfigurationId = Provider }
-        };
+        _reportConfig.DataProvider = new DataProviderConfiguration { DataProviderConfigurationId = ProviderId };
 
-        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", config);
+        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", _reportConfig);
 
         var parameters = new ModalParameters();
         parameters.Add("ReportResponse", _serverTestResponse);
@@ -137,12 +140,12 @@
 
     private bool ValidateQuery()
     {
-        if (string.IsNullOrWhiteSpace(Query))
+        if (string.IsNullOrWhiteSpace(_reportConfig.Query))
         {
             ShowWarningPopover("sqlTextArea", "Напиши SQL запрос!");
             return false;
         }
-        if (Provider == 0)
+        if (ProviderId == 0)
         {
             ShowWarningPopover("providerSelect", "Выбери провайдер!");
             return false;
@@ -152,17 +155,17 @@
 
     private async void UpdateReport()
     {
-        if (string.IsNullOrWhiteSpace(Title))
+        if (string.IsNullOrWhiteSpace(_reportConfig.Title))
         {
             ShowWarningPopover("titleEdit", "Заполни название!");
             return;
         }
-        if (string.IsNullOrWhiteSpace(Description))
+        if (string.IsNullOrWhiteSpace(_reportConfig.Description))
         {
             ShowWarningPopover("descriptionTextArea", "Заполни описание!");
             return;
         }
-        if (!ValidateQuery()) 
+        if (!ValidateQuery())
             return;
 
         _displayPopoverId = null;

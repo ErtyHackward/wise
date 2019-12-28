@@ -30,7 +30,7 @@
                     @foreach (var report in _serverResponse.Response)
                     {
                         <tr>
-                            <td class="trim-td">@report.Title</td>
+                            <td class="trim-td"><a href="/reports/@report.ReportConfigurationId">@report.Title</a></td>
                             <td class="trim-td">@report.Description</td>
                         </tr>
                     }
@@ -44,7 +44,7 @@
                 <span class="oi oi-reload" aria-hidden="true"></span> Обновить
             </button>
             <button class="btn btn-primary"
-                    @onclick="@(e => NavigationManager.NavigateTo("/report/new"))">
+                    @onclick="@(e => NavigationManager.NavigateTo("/reports/new"))">
                 <span class="oi oi-plus" aria-hidden="true"></span> Добавить
             </button>
         </div>
@@ -62,7 +62,7 @@
     private async void UpdateReport()
     {
         _serverResponse = null;
-        _serverResponse = await Backend.GetAsync<List<ReportConfiguration>>("http://localhost:64460/api/reports");
+        _serverResponse = await Backend.GetApiAsync<List<ReportConfiguration>>("reports");
         StateHasChanged();
     }
 }

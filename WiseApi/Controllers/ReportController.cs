@@ -13,22 +13,23 @@ namespace WiseApi.Controllers
 {
     [Route("api/reports")]
     [ApiController]
-    public class ReportConfigurationsController : ControllerBase
+    public class ReportController : ControllerBase
     {
         private readonly WiseContext _context;
 
-        public ReportConfigurationsController(WiseContext context)
+        public ReportController(WiseContext context)
         {
             _context = context;
         }
 
-        // GET: api/reportconfigs
+        // GET: api/reports
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReportConfiguration>>> GetReportConfigurations()
         {
-            return await _context.ReportConfigurations.ToListAsync().ConfigureAwait(false);
+            return await _context.ReportConfigurations.ToListAsync();
         }
 
+        // POST: api/reports/test
         [HttpPost(), Route("test")]
         public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportConfiguration config)
         {
@@ -87,12 +88,13 @@ namespace WiseApi.Controllers
             return resp;
         }
 
-        // GET: api/reportconfigs/5
+        // GET: api/reports/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ReportConfiguration>> GetReportConfiguration(int id)
         {
-            var reportConfiguration = await _context.ReportConfigurations.FindAsync(id);
-
+            var reportConfiguration = await _context.ReportConfigurations.Include(r => r.DataProvider).FirstOrDefaultAsync(r => r.ReportConfigurationId == id);
+            
+            // MySql.Data.MySqlClient.MySqlConnection, MySqlConnector
             if (reportConfiguration == null)
             {
                 return NotFound();
@@ -101,7 +103,7 @@ namespace WiseApi.Controllers
             return reportConfiguration;
         }
 
-        // PUT: api/reportconfigs/5
+        // PUT: api/reports/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
@@ -133,7 +135,7 @@ namespace WiseApi.Controllers
             return NoContent();
         }
 
-        // POST: api/reportconfigs
+        // POST: api/reports
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
@@ -145,7 +147,7 @@ namespace WiseApi.Controllers
             return CreatedAtAction("GetReportConfiguration", new { id = reportConfiguration.ReportConfigurationId }, reportConfiguration);
         }
 
-        // DELETE: api/reportconfigs/5
+        // DELETE: api/reports/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<ReportConfiguration>> DeleteReportConfiguration(int id)
         {

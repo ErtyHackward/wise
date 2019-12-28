@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseApi", "WiseApi.csproj", "{CEBFB42F-0E7E-45D7-A024-2E12395A6038}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseDomain", "..\WiseDomain\WiseDomain\WiseDomain.csproj", "{1AA3C612-886D-4A10-9B6B-75C32773D81B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WiseDomain", "..\WiseDomain\WiseDomain.csproj", "{1AA3C612-886D-4A10-9B6B-75C32773D81B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

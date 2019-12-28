@@ -12,11 +12,11 @@ namespace WiseApi.Controllers
 {
     [Route("api/providers")]
     [ApiController]
-    public class DataProviderConfigurationsController : ControllerBase
+    public class ProviderController : ControllerBase
     {
         private readonly WiseContext _context;
 
-        public DataProviderConfigurationsController(WiseContext context)
+        public ProviderController(WiseContext context)
         {
             _context = context;
         }
@@ -25,7 +25,7 @@ namespace WiseApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DataProviderConfiguration>>> GetDataProviderConfigurations()
         {
-            return await _context.DataProviderConfigurations.ToListAsync().ConfigureAwait(false); ;
+            return await _context.DataProviderConfigurations.ToListAsync();
         }
 
         // GET: api/providers/5
