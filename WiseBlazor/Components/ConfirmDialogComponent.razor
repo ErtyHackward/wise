@@ -1,0 +1,35 @@
+﻿@inject IModalService ModalService
+
+<div>
+    <h4>@_confirmText</h4>
+    <hr>
+    <button class="btn btn-danger" @onclick="@Submit">
+        <span class="oi oi-trash" aria-hidden="true"></span> Удалить
+    </button>
+    <button class="btn btn-secondary" @onclick="@Cancel">
+        Отмена
+    </button>
+</div>
+
+@code {
+
+    [CascadingParameter]
+    ModalParameters Parameters { get; set; }
+
+    string _confirmText;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _confirmText = Parameters.Get<string>("ConfirmText");
+    }
+
+    private void Submit()
+    {
+        ModalService.Close(ModalResult.Ok<object>(null));
+    }
+
+    private void Cancel()
+    {
+        ModalService.Cancel();
+    }
+}

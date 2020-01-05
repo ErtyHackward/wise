@@ -41,15 +41,12 @@
                         @onclick="@(e => TestQuery())">
                     <span class="oi oi-check" aria-hidden="true"></span> Проверить запрос
                 </button>
-                @if (Id == 0)
-                {
-                    <button class="btn btn-success"
-                            @onclick="@(e => UpdateReport())">
-                        <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
-                    </button>
-                }
+                <button class="btn btn-success" id="btnSave"
+                        @onclick="@(e => SaveReport())">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
+                </button>
                 <button class="btn btn-danger"
-                        @onclick="@(e => Nav.NavigateTo("/"))">
+                        @onclick="@(e => DeleteReport())">
                     <span class="oi oi-trash" aria-hidden="true"></span> Удалить
                 </button>
             </div>
@@ -109,7 +106,7 @@
         {
             Backend.GetApiAsync<ReportConfiguration>($"reports/{Id}").ContinueWith(t =>
             {
-                InvokeAsync(() => { 
+                InvokeAsync(() => {
                     _reportConfig = t.Result.Response;
                     ProviderId = _reportConfig.DataProvider != null ? _reportConfig.DataProvider.DataProviderConfigurationId : 0;
                     StateHasChanged();
@@ -153,7 +150,33 @@
         return true;
     }
 
-    private async void UpdateReport()
+    private async void DeleteReport()
+    {
+        if (Id == 0)
+            Nav.NavigateTo("/reports");
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("ConfirmText", $"Вы уверены что хотите удалить отчет {_reportConfig.Title} ?");
+
+            Modal.OnClose += ModalClosed;
+
+            Modal.Show<ConfirmDialogComponent>("Подтвердите", parameters);
+            
+        }
+    }
+
+    async void ModalClosed(ModalResult modalResult)
+    {
+        if (!modalResult.Cancelled)
+        {
+            await Backend.DeleteApiAsync($"reports/{Id}");
+            Nav.NavigateTo("reports");
+        }
+        Modal.OnClose -= ModalClosed;
+    }
+
+    private async void SaveReport()
     {
         if (string.IsNullOrWhiteSpace(_reportConfig.Title))
         {
@@ -171,10 +194,23 @@
         _displayPopoverId = null;
         StateHasChanged();
 
-        //
-        //_serverResponse = null;
-        //_serverResponse = await Backend.RequestAsync<List<ReportConfiguration>>("http://localhost:64460/api/reportconfigs");
-        //StateHasChanged();
+        _reportConfig.DataProvider = new DataProviderConfiguration { DataProviderConfigurationId = ProviderId };
+
+        ServerResponse response;
+
+        if (Id == 0)
+        {
+            response = await Backend.PostApiAsync<ReportConfiguration>("reports", _reportConfig);
+        }
+        else
+        {
+            response = await Backend.PutApiAsync($"reports/{Id}", _reportConfig);
+        }
+
+        if (response.Success)
+            Nav.NavigateTo("reports");
+        else
+            ShowWarningPopover("btnSave", response.ErrorText);
     }
 }
 

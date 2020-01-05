@@ -38,7 +38,6 @@ namespace WiseApi.Controllers
             try
             {
                 var connection = Activator.CreateInstance(Type.GetType(config.DataProviderType)) as IDbConnection;
-
                 connection.ConnectionString = config.ConnectionString;
                 connection.Open();
 

@@ -97,7 +97,43 @@ namespace WiseBlazor.Components
             }
         }
 
-        //
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="relativeUri">Uri after */api/</param>
+        /// <returns></returns>
+        public async Task<ServerResponse> PutApiAsync(string relativeUri, object content)
+        {
+            try
+            {
+                await HttpClient.PutJsonAsync(new Uri(_apiBaseUri, relativeUri).ToString(), content);
+                return new ServerResponse() { Success = true };
+            }
+            catch (Exception x)
+            {
+                return new ServerResponse { ErrorText = x.Message, ErrorCode = 1 };
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="relativeUri">Uri after */api/</param>
+        /// <returns></returns>
+        public async Task<ServerResponse> DeleteApiAsync(string relativeUri)
+        {
+            try
+            {
+                var result = await HttpClient.DeleteAsync(new Uri(_apiBaseUri, relativeUri).ToString());
+                return new ServerResponse() { Success = true };
+            }
+            catch (Exception x)
+            {
+                return new ServerResponse { ErrorText = x.Message, ErrorCode = 1 };
+            }
+        }
 
         public async Task<ServerResponse<T>> GetJsonAsync<T>(string uri)
         {

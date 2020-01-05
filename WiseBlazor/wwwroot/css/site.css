@@ -232,3 +232,15 @@ app {
 .sql-error {
     max-width: 60vw;
 }
+
+.provider-icon-td {
+    width: 2.1rem;
+}
+
+.provider-icon-td img {
+    width: 2rem;
+}
+
+.provider-title-td {
+    vertical-align: middle !important;
+}

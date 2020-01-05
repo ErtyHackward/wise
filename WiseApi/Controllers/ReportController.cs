@@ -93,8 +93,7 @@ namespace WiseApi.Controllers
         public async Task<ActionResult<ReportConfiguration>> GetReportConfiguration(int id)
         {
             var reportConfiguration = await _context.ReportConfigurations.Include(r => r.DataProvider).FirstOrDefaultAsync(r => r.ReportConfigurationId == id);
-            
-            // MySql.Data.MySqlClient.MySqlConnection, MySqlConnector
+
             if (reportConfiguration == null)
             {
                 return NotFound();
@@ -141,6 +140,9 @@ namespace WiseApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ReportConfiguration>> PostReportConfiguration(ReportConfiguration reportConfiguration)
         {
+
+            reportConfiguration.DataProvider = await _context.DataProviderConfigurations.FindAsync(reportConfiguration.DataProvider.DataProviderConfigurationId);
+
             _context.ReportConfigurations.Add(reportConfiguration);
             await _context.SaveChangesAsync();
 
