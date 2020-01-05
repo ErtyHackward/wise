@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="ClickHouse.Ado" Version="1.1.20" />
-    <PackageReference Include="ElasticsearchAdo" Version="0.1.0" />
+    <PackageReference Include="ElasticsearchAdo" Version="0.1.3" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Cors" Version="5.2.7" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>

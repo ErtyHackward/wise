@@ -24,7 +24,7 @@ namespace WiseDomain
                 CLRType = "Elasticsearch.Ado.ElasticSearchConnection, ElasticSearch.Ado", 
                 TypeTitle = "ElasticSearch", 
                 IconPath = "/images/elasticsearch.svg",
-                SampleConnectionString = "Server=localhost;Port=9200;User=guest;Password=123456;"
+                SampleConnectionString = "Server=localhost;Port=9200;User=guest;Password=123456;FetchSize=30000"
             },
             new ProviderType { 
                 CLRType = "ClickHouse.Ado.ClickHouseConnection, ClickHouse.Ado", 

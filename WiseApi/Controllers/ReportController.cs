@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -43,6 +44,8 @@ namespace WiseApi.Controllers
                 connection.ConnectionString = providerInfo.ConnectionString;
                 connection.Open();
 
+                var timer = Stopwatch.StartNew();
+
                 using (connection)
                 using (var command = connection.CreateCommand())
                 {
@@ -51,33 +54,43 @@ namespace WiseApi.Controllers
                     using (var reader = command.ExecuteReader())
                     {
                         List<List<object>> result = new List<List<object>>();
-
+                        
                         resp.ReportId = 0;
-                        resp.RowsCount = 10;
                         resp.PreviewValues = result;
                         resp.Columns = new List<string>();
+                        
+                        var count = 0;
 
                         do
                         {
                             while (reader.Read())
                             {
+                                count++;
                                 if (resp.Columns.Count == 0)
                                 {
+                                    
                                     for (int i = 0; i < reader.FieldCount; i++)
                                     {
                                         resp.Columns.Add(reader.GetName(i));
                                     }
                                 }
 
-                                List<object> items = new List<object>();
-                                for (int i = 0; i < reader.FieldCount; i++)
+                                if (count < 10)
                                 {
-                                    items.Add(reader.GetValue(i));
+                                    List<object> items = new List<object>();
+                                    for (int i = 0; i < reader.FieldCount; i++)
+                                    {
+                                        items.Add(reader.GetValue(i));
+                                    }
+                                    result.Add(items);
                                 }
-                                result.Add(items);
                             }
                         } while (reader.NextResult());
+                        resp.RowsCount = count;
                     }
+
+                    timer.Stop();
+                    resp.GenerationTimeMs = (int)timer.ElapsedMilliseconds;
                 }
             }
             catch (Exception x)

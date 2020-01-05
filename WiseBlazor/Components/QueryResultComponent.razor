@@ -1,9 +1,13 @@
 ﻿@if (_response.Success && _response.Response?.ErrorText == null)
 {
     <div class="alert alert-success">
-        <h4 class="alert-heading">Успешный успех</h4>
+        <h4 class="alert-heading">Запрос выполнен успешно</h4>
         <hr>
         @_response.Response.ReportTitle
+        <hr>
+        <span>Время выполнения: @TimeSpan.FromMilliseconds(_response.Response.GenerationTimeMs).ToString()</span>
+        <hr>
+        <span>Всего строк: @_response.Response.RowsCount</span>
     </div>
     @if (_response.Response.Columns != null)
     {
