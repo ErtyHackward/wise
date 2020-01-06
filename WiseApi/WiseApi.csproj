@@ -42,4 +42,8 @@
     <ProjectReference Include="..\WiseDomain\WiseDomain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

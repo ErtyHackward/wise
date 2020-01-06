@@ -9,8 +9,8 @@ using WiseApi;
 namespace WiseApi.Migrations
 {
     [DbContext(typeof(WiseContext))]
-    [Migration("20191222144627_AddTitleAndDescForReportConfig")]
-    partial class AddTitleAndDescForReportConfig
+    [Migration("20200106163531_InitialCreate2")]
+    partial class InitialCreate2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace WiseApi.Migrations
 
             modelBuilder.Entity("WiseDomain.DataProviderConfiguration", b =>
                 {
-                    b.Property<int>("DataProviderConfigurationId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -35,6 +35,9 @@ namespace WiseApi.Migrations
                     b.Property<string>("DataProviderType")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
                     b.Property<string>("Title")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -42,14 +45,14 @@ namespace WiseApi.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("DataProviderConfigurationId");
+                    b.HasKey("Id");
 
-                    b.ToTable("DataProviderConfigurations");
+                    b.ToTable("Providers");
                 });
 
             modelBuilder.Entity("WiseDomain.ReportConfiguration", b =>
                 {
-                    b.Property<int>("ReportConfigurationId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -57,7 +60,7 @@ namespace WiseApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("DataProviderConfigurationId")
+                    b.Property<int?>("DataProviderId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -66,6 +69,9 @@ namespace WiseApi.Migrations
                     b.Property<string>("Query")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
+                    b.Property<int>("TimeType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -73,48 +79,98 @@ namespace WiseApi.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("ReportConfigurationId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("DataProviderConfigurationId");
+                    b.HasIndex("DataProviderId");
 
-                    b.ToTable("ReportConfigurations");
+                    b.ToTable("Reports");
                 });
 
-            modelBuilder.Entity("WiseDomain.ReportExecution", b =>
+            modelBuilder.Entity("WiseDomain.ReportCustomParameter", b =>
                 {
-                    b.Property<int>("ReportExecutionId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("ExecutionFinishedAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("QueryId")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.Property<DateTime>("ExecutionStartedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("QueryValue")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<int?>("ReportConfigurationId")
                         .HasColumnType("int");
 
-                    b.HasKey("ReportExecutionId");
+                    b.Property<bool>("Required")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ReportConfigurationId");
 
-                    b.ToTable("Executions");
+                    b.ToTable("Parameters");
+                });
+
+            modelBuilder.Entity("WiseDomain.ReportRun", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomParameterValues")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("QueryTimeFrom")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<TimeSpan?>("QueryTimeLast")
+                        .HasColumnType("time(6)");
+
+                    b.Property<DateTime?>("QueryTimeTo")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ReportId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportId");
+
+                    b.ToTable("Runs");
                 });
 
             modelBuilder.Entity("WiseDomain.ReportConfiguration", b =>
                 {
                     b.HasOne("WiseDomain.DataProviderConfiguration", "DataProvider")
                         .WithMany()
-                        .HasForeignKey("DataProviderConfigurationId");
+                        .HasForeignKey("DataProviderId");
                 });
 
-            modelBuilder.Entity("WiseDomain.ReportExecution", b =>
+            modelBuilder.Entity("WiseDomain.ReportCustomParameter", b =>
                 {
-                    b.HasOne("WiseDomain.ReportConfiguration", "ReportConfiguration")
-                        .WithMany()
+                    b.HasOne("WiseDomain.ReportConfiguration", null)
+                        .WithMany("CustomParameters")
                         .HasForeignKey("ReportConfigurationId");
+                });
+
+            modelBuilder.Entity("WiseDomain.ReportRun", b =>
+                {
+                    b.HasOne("WiseDomain.ReportConfiguration", "Report")
+                        .WithMany()
+                        .HasForeignKey("ReportId");
                 });
 #pragma warning restore 612, 618
         }

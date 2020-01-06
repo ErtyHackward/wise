@@ -5,7 +5,7 @@ namespace WiseDomain
 {
     public class DataProviderConfiguration
     {
-        public int DataProviderConfigurationId { get; set; }
+        public int Id { get; set; }
 
         public string DataProviderType { get; set; }
 

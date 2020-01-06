@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace WiseDomain
 {
     public class ReportConfiguration
     {
-        public int ReportConfigurationId { get; set; }
+        public int Id { get; set; }
 
         public DataProviderConfiguration DataProvider { get; set; }
 
@@ -17,5 +18,9 @@ namespace WiseDomain
         public string Title { get; set; }
 
         public string Description { get; set; }
+
+        public ReportTimeType TimeType { get; set; }
+
+        public List<ReportCustomParameter> CustomParameters { get; set; }
     }
 }

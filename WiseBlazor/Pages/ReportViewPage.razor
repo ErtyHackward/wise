@@ -11,7 +11,7 @@
         else
         {
             <h5>@_report.Title</h5>
-            <span>@_report.Description</span>
+            <MarkdownComponent MarkdownRaw="@_report.Description" />
             <div>
                 <button class="btn btn-primary">
                     <span class="oi oi-media-play" aria-hidden="true"></span> Выполнить запрос

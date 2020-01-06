@@ -1,0 +1,19 @@
+﻿@inject MarkdownPipeline Pipeline
+
+<div class="markdown-body">
+    @((MarkupString)_markdownHtml)
+</div>
+
+@code {
+
+    private string _markdownHtml;
+
+    [Parameter]
+    public string MarkdownRaw { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _markdownHtml = Markdown.ToHtml(MarkdownRaw, Pipeline);
+    }
+}

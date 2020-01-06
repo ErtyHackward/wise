@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WiseBlazor.Components;
 using Blazored.Modal;
+using Blazor.Extensions;
+using Markdig;
 
 namespace WiseBlazor
 {
@@ -14,11 +16,13 @@ namespace WiseBlazor
         {
             services.AddStorage();
             services.AddSingleton(typeof(Backend));
+            services.AddSingleton((_) => new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
             services.AddBlazoredModal();
             services.AddLogging(builder => builder
                 .AddBrowserConsole()
                 .SetMinimumLevel(LogLevel.Trace)
             );
+            services.AddTransient<HubConnectionBuilder>();
         }
 
         public void Configure(IComponentsApplicationBuilder app)

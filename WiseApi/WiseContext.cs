@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +10,24 @@ namespace WiseApi
 {
     public class WiseContext : DbContext
     {
-        public DbSet<ReportExecution> Executions { get; set; }
+        public DbSet<ReportRun> Runs { get; set; }
 
-        public DbSet<DataProviderConfiguration> DataProviderConfigurations { get; set; }
+        public DbSet<DataProviderConfiguration> Providers { get; set; }
 
-        public DbSet<ReportConfiguration> ReportConfigurations { get; set; }
+        public DbSet<ReportConfiguration> Reports { get; set; }
+
+        public DbSet<ReportCustomParameter> Parameters { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => 
             optionsBuilder.UseMySql("Server=localhost;Database=wise;Uid=wise;Pwd=SuK1jo1Eb44e;");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ReportExecution>().Property(p => p.ExecutionStartedAt).ValueGeneratedOnAdd();
+            modelBuilder.Entity<ReportRun>().Property(p => p.StartedAt).ValueGeneratedOnAdd();
+            modelBuilder.Entity<ReportRun>().Property(p => p.CustomParameterValues).HasConversion(
+                v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
+                v => JsonConvert.DeserializeObject<Dictionary<int, object>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
+                );
 
             modelBuilder.Entity<DataProviderConfiguration>().Property(p => p.CreatedAt).ValueGeneratedOnAdd();
             modelBuilder.Entity<DataProviderConfiguration>().Property(p => p.UpdatedAt).ValueGeneratedOnAddOrUpdate();

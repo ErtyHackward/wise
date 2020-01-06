@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using WiseApi;
+using WiseApi.Hubs;
 using WiseDomain;
 
 namespace WiseApi.Controllers
@@ -17,24 +19,33 @@ namespace WiseApi.Controllers
     public class ReportController : ControllerBase
     {
         private readonly WiseContext _context;
+        private readonly IHubContext<ReportsHub> _hubContext;
 
-        public ReportController(WiseContext context)
+        public ReportController(WiseContext context, IHubContext<ReportsHub> hub)
         {
             _context = context;
+            _hubContext = hub;
         }
 
         // GET: api/reports
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReportConfiguration>>> GetReportConfigurations()
         {
-            return await _context.ReportConfigurations.ToListAsync();
+            return await _context.Reports.ToListAsync();
+        }
+
+        // GET: api/reports/begin/5
+        [HttpPost("begin/{id}")]
+        public async Task<IActionResult> BeginQuery()
+        {
+            return Ok();
         }
 
         // POST: api/reports/test
         [HttpPost(), Route("test")]
         public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportConfiguration config)
         {
-            var providerInfo = await _context.DataProviderConfigurations.FindAsync(config.DataProvider.DataProviderConfigurationId);
+            var providerInfo = await _context.Providers.FindAsync(config.DataProvider.Id);
             var resp = new ReportResponse();
 
             try
@@ -105,7 +116,7 @@ namespace WiseApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ReportConfiguration>> GetReportConfiguration(int id)
         {
-            var reportConfiguration = await _context.ReportConfigurations.Include(r => r.DataProvider).FirstOrDefaultAsync(r => r.ReportConfigurationId == id);
+            var reportConfiguration = await _context.Reports.Include(r => r.DataProvider).FirstOrDefaultAsync(r => r.Id == id);
 
             if (reportConfiguration == null)
             {
@@ -121,7 +132,7 @@ namespace WiseApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReportConfiguration(int id, ReportConfiguration reportConfiguration)
         {
-            if (id != reportConfiguration.ReportConfigurationId)
+            if (id != reportConfiguration.Id)
             {
                 return BadRequest();
             }
@@ -131,6 +142,8 @@ namespace WiseApi.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+
+                await _hubContext.Clients.All.SendAsync("ReportsListChanged");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -154,33 +167,37 @@ namespace WiseApi.Controllers
         public async Task<ActionResult<ReportConfiguration>> PostReportConfiguration(ReportConfiguration reportConfiguration)
         {
 
-            reportConfiguration.DataProvider = await _context.DataProviderConfigurations.FindAsync(reportConfiguration.DataProvider.DataProviderConfigurationId);
+            reportConfiguration.DataProvider = await _context.Providers.FindAsync(reportConfiguration.DataProvider.Id);
 
-            _context.ReportConfigurations.Add(reportConfiguration);
+            _context.Reports.Add(reportConfiguration);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetReportConfiguration", new { id = reportConfiguration.ReportConfigurationId }, reportConfiguration);
+            await _hubContext.Clients.All.SendAsync("ReportsListChanged");
+
+            return CreatedAtAction("GetReportConfiguration", new { id = reportConfiguration.Id }, reportConfiguration);
         }
 
         // DELETE: api/reports/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<ReportConfiguration>> DeleteReportConfiguration(int id)
         {
-            var reportConfiguration = await _context.ReportConfigurations.FindAsync(id);
+            var reportConfiguration = await _context.Reports.FindAsync(id);
             if (reportConfiguration == null)
             {
                 return NotFound();
             }
 
-            _context.ReportConfigurations.Remove(reportConfiguration);
+            _context.Reports.Remove(reportConfiguration);
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.All.SendAsync("ReportsListChanged");
 
             return reportConfiguration;
         }
 
         private bool ReportConfigurationExists(int id)
         {
-            return _context.ReportConfigurations.Any(e => e.ReportConfigurationId == id);
+            return _context.Reports.Any(e => e.Id == id);
         }
     }
 }

@@ -33,7 +33,7 @@
                     {
                         <tr>
                             <td class="trim-td provider-icon-td"><img src="@DataProviderConfiguration.BuiltInProviders.FirstOrDefault(p => p.CLRType == provider.DataProviderType).IconPath"></td>
-                            <td class="trim-td provider-title-td"><a href="/providers/@provider.DataProviderConfigurationId/edit">@provider.Title</a></td>
+                            <td class="trim-td provider-title-td"><a href="/providers/@provider.Id/edit">@provider.Title</a></td>
                         </tr>
                     }
                 </tbody>

@@ -3,6 +3,7 @@
 @inject Backend Backend
 @inject ILogger<Backend> Logger
 @inject NavigationManager NavigationManager
+@inject HubConnectionBuilder HubConnectionBuilder
 
 <div class="page">
     <h1>Отчеты</h1>
@@ -30,7 +31,7 @@
                     @foreach (var report in _serverResponse.Response)
                     {
                         <tr>
-                            <td class="trim-td"><a href="/reports/@report.ReportConfigurationId">@report.Title</a></td>
+                            <td class="trim-td"><a href="/reports/@report.Id">@report.Title</a></td>
                             <td class="trim-td">@report.Description</td>
                         </tr>
                     }
@@ -54,9 +55,28 @@
 @code {
     private ServerResponse<List<ReportConfiguration>> _serverResponse;
 
+    private HubConnection _hubConnection;
+
     protected override async Task OnInitializedAsync()
     {
         UpdateReport();
+
+        _hubConnection = HubConnectionBuilder.WithUrl("http://localhost:64460/reportsHub", opt => { opt.Transport = HttpTransportType.WebSockets; opt.SkipNegotiation = true; }).Build();
+        _hubConnection.On<string>("ReportsListChanged", ListChanged);
+
+        _hubConnection.OnClose(exc =>
+            {
+                Console.WriteLine("Connection was closed! " + exc.ToString());
+                return Task.CompletedTask;
+            });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private Task ListChanged(string msg)
+    {
+        UpdateReport();
+        return Task.CompletedTask;
     }
 
     private async void UpdateReport()

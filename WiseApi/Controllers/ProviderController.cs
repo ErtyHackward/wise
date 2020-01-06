@@ -26,7 +26,7 @@ namespace WiseApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DataProviderConfiguration>>> GetDataProviderConfigurations()
         {
-            return await _context.DataProviderConfigurations.ToListAsync();
+            return await _context.Providers.ToListAsync();
         }
 
         // POST: api/providers/test
@@ -59,7 +59,7 @@ namespace WiseApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<DataProviderConfiguration>> GetDataProviderConfiguration(int id)
         {
-            var dataProviderConfiguration = await _context.DataProviderConfigurations.FindAsync(id);
+            var dataProviderConfiguration = await _context.Providers.FindAsync(id);
 
             if (dataProviderConfiguration == null)
             {
@@ -75,7 +75,7 @@ namespace WiseApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDataProviderConfiguration(int id, DataProviderConfiguration dataProviderConfiguration)
         {
-            if (id != dataProviderConfiguration.DataProviderConfigurationId)
+            if (id != dataProviderConfiguration.Id)
             {
                 return BadRequest();
             }
@@ -107,23 +107,23 @@ namespace WiseApi.Controllers
         [HttpPost]
         public async Task<ActionResult<DataProviderConfiguration>> PostDataProviderConfiguration(DataProviderConfiguration dataProviderConfiguration)
         {
-            _context.DataProviderConfigurations.Add(dataProviderConfiguration);
+            _context.Providers.Add(dataProviderConfiguration);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDataProviderConfiguration", new { id = dataProviderConfiguration.DataProviderConfigurationId }, dataProviderConfiguration);
+            return CreatedAtAction("GetDataProviderConfiguration", new { id = dataProviderConfiguration.Id }, dataProviderConfiguration);
         }
 
         // DELETE: api/providers/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<DataProviderConfiguration>> DeleteDataProviderConfiguration(int id)
         {
-            var dataProviderConfiguration = await _context.DataProviderConfigurations.FindAsync(id);
+            var dataProviderConfiguration = await _context.Providers.FindAsync(id);
             if (dataProviderConfiguration == null)
             {
                 return NotFound();
             }
 
-            _context.DataProviderConfigurations.Remove(dataProviderConfiguration);
+            _context.Providers.Remove(dataProviderConfiguration);
             await _context.SaveChangesAsync();
 
             return dataProviderConfiguration;
@@ -131,7 +131,7 @@ namespace WiseApi.Controllers
 
         private bool DataProviderConfigurationExists(int id)
         {
-            return _context.DataProviderConfigurations.Any(e => e.DataProviderConfigurationId == id);
+            return _context.Providers.Any(e => e.Id == id);
         }
     }
 }

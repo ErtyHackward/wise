@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using WiseApi.Hubs;
 
 namespace WiseApi
 {
@@ -27,6 +28,7 @@ namespace WiseApi
             services.AddControllers();
             services.AddCors();
             services.AddDbContext<WiseContext>();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +47,7 @@ namespace WiseApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ReportsHub>("/reportsHub");
             });
         }
     }
