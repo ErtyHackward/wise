@@ -19,8 +19,6 @@ namespace WiseDomain
 
         public string Description { get; set; }
 
-        public ReportTimeType TimeType { get; set; }
-
         public List<ReportCustomParameter> CustomParameters { get; set; }
     }
 }

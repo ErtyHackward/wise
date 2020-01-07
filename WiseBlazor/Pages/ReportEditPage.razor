@@ -14,37 +14,114 @@
     {
         <h1>Редактирование отчета</h1>
     }
-
     <div class="report-edit">
-        <input class="form-control" id="titleEdit" type="text" placeholder="Название отчета" @bind="_reportConfig.Title" />
-        <textarea class="form-control" id="descriptionTextArea" placeholder="Описание для людей, используй Markdown" @bind="_reportConfig.Description"></textarea>
-        <button class="btn btn-primary"
-                @onclick="@TestMarkdown">
-            <span class="oi oi-eye" aria-hidden="true"></span> Предпросмотр
-        </button>
-        <div>
-            <select class="form-control" id="providerSelect" @bind="ProviderId">
-                @if (_providers == null)
-                {
-                    <option selected disabled>Загрузка...</option>
-                }
-                else
-                {
-                    <option disabled>Выбери источник</option>
-                    @foreach (var provider in _providers)
-                    {
-                        <option value="@provider.Id">@provider.Title</option>
-                    }
-                }
-            </select>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="titleEdit">Название отчета</label>
+                <input class="form-control" id="titleEdit" type="text" @bind="_reportConfig.Title" />
+            </div>
         </div>
-        <textarea class="form-control" id="sqlTextArea" placeholder="Текст SQL запроса" @bind="_reportConfig.Query"></textarea>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="descriptionTextArea">Описание для людей</label>
+                <textarea class="form-control" id="descriptionTextArea" rows="6" @bind="_reportConfig.Description"></textarea>
+                <small id="descriptionHelp" class="form-text text-muted">Опиши так чтобы пользователю было понятно, используй Markdown чтобы сделать описание выразительнее</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <button class="btn btn-primary"
+                        @onclick="@TestMarkdown">
+                    <span class="oi oi-eye" aria-hidden="true"></span> Предпросмотр
+                </button>
+            </div>
+        </div>
 
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label for="providerSelect">Источник данных</label>
+                <select class="form-control" id="providerSelect" @bind="ProviderId">
+                    @if (_providers == null)
+                    {
+                        <option selected disabled>Загрузка...</option>
+                    }
+                    else
+                    {
+                        <option disabled>Выбери источник</option>
+                        @foreach (var provider in _providers)
+                        {
+                            <option value="@provider.Id">@provider.Title</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="sqlTextArea">Текст SQL запроса</label>
+                <textarea class="form-control sql-text" id="sqlTextArea" placeholder="" rows="6" @bind="_reportConfig.Query"></textarea>
+                <small id="sqlTextHelp" class="form-text text-muted">Подставь в запрос параметры в виде <span class="sql-text">$myParam</span>, чтобы задать время <span class="sql-text">WHERE $timeFilter</span></small>
+            </div>
+        </div>
+        <hr>
+        <h2>Параметры запроса</h2>
+        @if (_reportConfig.CustomParameters != null)
+        {
+            @foreach (var par in _reportConfig.CustomParameters)
+            {
+                <form>
+                    <div class="form-row form-group align-items-center">
+                        <div class="col-auto">
+                            <input class="form-control" type="text" placeholder="Название параметра" @bind="par.Title" />
+                        </div>
+                        <div class="col-auto">
+                            <input class="form-control sql-text" type="text" placeholder="Идентификатор параметра" @bind="par.QueryId" />
+                        </div>
+                        <div class="col-auto">
+                            <select class="form-control" @bind="par.Type">
+                                @foreach (ReportCustomParameterType paramType in Enum.GetValues(typeof(ReportCustomParameterType)))
+                                {
+                                    <option value="@paramType">@paramType.ToLabel()</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <input class="form-control sql-text" type="text" placeholder="Значение параметра" @bind="par.QueryValue" />
+                        </div>
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkPar@(par.Id)" @bind="par.Required" />
+                                <label class="form-check-label" for="checkPar@(par.Id)">Обязательный</label>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger" @onclick="@(() => _reportConfig.CustomParameters.Remove(par))">
+                                <span class="oi oi-trash" aria-hidden="true"></span> Удалить
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            }
+        }
+        <button class="btn btn-primary" @onclick="@AddParameter">
+            <span class="oi oi-plus" aria-hidden="true"></span> Добавить параметр
+        </button>
+        <hr>
+        <h2>Проверка запроса</h2>
+        
+        <ReportParametersComponent Report="_reportConfig" />
+
+        
+        <div class="form-row">
+            <div class="form-group">
+                <button class="btn btn-primary"
+                        @onclick="@TestQuery">
+                    <span class="oi oi-check" aria-hidden="true"></span> Проверить запрос
+                </button>
+            </div>
+        </div>
+        <hr>
         <div>
-            <button class="btn btn-primary"
-                    @onclick="@TestQuery">
-                <span class="oi oi-check" aria-hidden="true"></span> Проверить запрос
-            </button>
             <button class="btn btn-success" id="btnSave"
                     @onclick="@SaveReport">
                 <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
@@ -83,6 +160,10 @@
 
     public int ProviderId { get; set; }
 
+    DateTimeOffset? StartDate { get; set; } = DateTime.Today.AddDays(-7);
+
+    DateTimeOffset? EndDate { get; set; } = DateTime.Today.AddDays(1).AddTicks(-1);
+
     private List<DataProviderConfiguration> _providers;
 
     private ServerResponse<ReportResponse> _serverTestResponse;
@@ -92,6 +173,7 @@
     private string _displayPopoverId;
     private string _popoverMessage;
     private bool _switch;
+
 
 
     private void ShowWarningPopover(string elementId, string message)
@@ -133,8 +215,18 @@
         Modal.Show<MarkdownModalComponent>("Предпросмотр", parameters);
     }
 
+    private void AddParameter()
+    {
+        if (_reportConfig.CustomParameters == null)
+            _reportConfig.CustomParameters = new List<ReportCustomParameter>();
+
+        _reportConfig.CustomParameters.Add(new ReportCustomParameter());
+        StateHasChanged();
+    }
+
     private async void TestQuery()
     {
+        Logger.LogInformation("validating query");
         if (!ValidateQuery())
             return;
 

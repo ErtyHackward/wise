@@ -1,0 +1,85 @@
+﻿
+@if (Report?.Query?.Contains("$timeFilter") == true)
+{
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label>Диапазон выгрузки</label>
+            <DateRangePicker class="form-control" CustomRangeLabel="Выбрать" Ranges="DateRangeHelper.GetDefaultRanges()" @bind-StartDate="StartDate" @bind-EndDate="EndDate" Drops="DropsType.Up" />
+        </div>
+    </div>
+}
+else
+{
+    <span class="alert-info">Запрос не позволяет выбрать временной интервал для выгрузки</span>
+}
+
+@if (Report?.CustomParameters != null)
+{
+    @foreach (var par in Report.CustomParameters)
+    {
+        var parameterId = par.Id;
+        <div class="form-row form-group align-items-center">
+            @switch (par.Type)
+            {
+                case ReportCustomParameterType.Check:
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="par@(par.Id)" @onchange="(e) => ValueChanged(parameterId, e)" />
+                        <label class="form-check-label" for="par@(par.Id)">@par.Title</label>
+                    </div>
+                    break;
+                case ReportCustomParameterType.CustomString:
+                    <div class="col-auto">
+                        <label for="par@(par.Id)">@par.Title</label>
+                        <input id="par@(par.Id)" class="form-control" type="text" @onchange="(e) => ValueChanged(parameterId, e)" />
+                    </div>
+                    break;
+                default:
+                    <span class="alert-info">Параметр этого типа не поддерживается</span>
+                    break;
+            }
+
+        </div>
+    }
+}
+else
+{
+    <span class="alert-info">У запроса нет параметров</span>
+}
+
+@code {
+
+        DateTimeOffset? StartDate { get; set; } = DateTime.Today.AddDays(-7);
+
+        DateTimeOffset? EndDate { get; set; } = DateTime.Today.AddDays(1).AddTicks(-1);
+
+    private ReportRun _run = new ReportRun();
+    private ReportConfiguration _report = new ReportConfiguration();
+
+    [Parameter]
+    public ReportConfiguration Report {
+        get { return _report; }
+        set {
+            _report = value;
+
+            if (_report == null)
+                return;
+
+            _run.CustomParameterValues = new Dictionary<int, object>();
+        }
+    }
+
+    [Parameter]
+    public ReportRun Run { get; set; } = new ReportRun();
+
+    private void ValueChanged(int id, ChangeEventArgs e)
+    {
+        if (_run.CustomParameterValues.ContainsKey(id))
+            _run.CustomParameterValues[id] = e.Value;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+}

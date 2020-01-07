@@ -17,8 +17,6 @@ namespace WiseDomain
 
         public DateTime? QueryTimeTo { get; set; }
 
-        public TimeSpan? QueryTimeLast { get; set; }
-
         public Dictionary<int, object> CustomParameterValues { get; set; }
     }
 }
