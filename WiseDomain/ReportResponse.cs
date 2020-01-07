@@ -13,6 +13,8 @@ namespace WiseDomain
 
         public int ColumnsCount { get; set; }
 
+        public string FinalQuery { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public string AuthorLogin { get; set; }
@@ -30,5 +32,12 @@ namespace WiseDomain
         public int GenerationTimeMs { get; set; }
 
         public string ErrorText { get; set; }
+    }
+
+    public class ReportWithParameters
+    {
+        public ReportConfiguration Report { get; set; }
+
+        public ReportRun Run { get; set; }
     }
 }

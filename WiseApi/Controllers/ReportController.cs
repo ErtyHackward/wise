@@ -43,10 +43,40 @@ namespace WiseApi.Controllers
 
         // POST: api/reports/test
         [HttpPost(), Route("test")]
-        public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportConfiguration config)
+        public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportWithParameters bundle)
         {
+            var config = bundle.Report;
+            var reportParameters = bundle.Run?.CustomParameterValues;
+            var run = bundle.Run;
+
             var providerInfo = await _context.Providers.FindAsync(config.DataProvider.Id);
             var resp = new ReportResponse();
+
+            resp.FinalQuery = config.Query;
+
+            if (config.CustomParameters != null)
+            {
+                foreach (var par in config.CustomParameters)
+                {
+                    object value = null;
+                    reportParameters?.TryGetValue(par.Id, out value);
+
+                    switch (par.Type)
+                    {
+                        case ReportCustomParameterType.Check:
+                            resp.FinalQuery = resp.FinalQuery.Replace(par.QueryId, value is bool == true ? par.QueryValue : string.Empty, StringComparison.InvariantCultureIgnoreCase);
+                            break;
+                        default:
+                            resp.FinalQuery = resp.FinalQuery.Replace(par.QueryId, value == null ? string.Empty : par.QueryValue, StringComparison.InvariantCultureIgnoreCase);
+                            break;
+                    }
+                }
+            }
+
+            if (run != null && resp.FinalQuery.Contains("$timeFilter"))
+            {
+                resp.FinalQuery = resp.FinalQuery.Replace("$timeFilter", $"BETWEEN '{run.QueryTimeFrom:yyyy-MM-dd hh:mm}' AND '{run.QueryTimeTo:yyyy-MM-dd hh:mm}'");
+            }
 
             try
             {
@@ -60,7 +90,7 @@ namespace WiseApi.Controllers
                 using (connection)
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = config.Query;
+                    command.CommandText = resp.FinalQuery;
 
                     using (var reader = command.ExecuteReader())
                     {
@@ -116,7 +146,7 @@ namespace WiseApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ReportConfiguration>> GetReportConfiguration(int id)
         {
-            var reportConfiguration = await _context.Reports.Include(r => r.DataProvider).FirstOrDefaultAsync(r => r.Id == id);
+            var reportConfiguration = await _context.Reports.Include(r => r.DataProvider).Include(r => r.CustomParameters).FirstOrDefaultAsync(r => r.Id == id);
 
             if (reportConfiguration == null)
             {
@@ -137,7 +167,40 @@ namespace WiseApi.Controllers
                 return BadRequest();
             }
 
+            var repCurrent = await _context.Reports.AsNoTracking().Include(r => r.CustomParameters).FirstOrDefaultAsync(r => r.Id == id);
+
             _context.Entry(reportConfiguration).State = EntityState.Modified;
+
+            if (reportConfiguration.CustomParameters != null)
+            {
+                foreach (var par in reportConfiguration.CustomParameters)
+                {
+                    if (par.Id != 0)
+                        _context.Entry(par).State = EntityState.Modified;
+                    else
+                        _context.Entry(par).State = EntityState.Added;
+                }
+            }           
+
+            if (repCurrent.CustomParameters != null)
+            {
+                if (reportConfiguration.CustomParameters == null)
+                {
+                    // delete all
+                    foreach (var par in repCurrent.CustomParameters)
+                    {
+                        _context.Entry(par).State = EntityState.Deleted;
+                    }
+                }
+                else
+                {
+                    // delete deleted
+                    foreach (var par in repCurrent.CustomParameters.Where(p => !reportConfiguration.CustomParameters.Any(p1 => p1.Id == p.Id)))
+                    {
+                        _context.Entry(par).State = EntityState.Deleted;
+                    }
+                }
+            }
 
             try
             {

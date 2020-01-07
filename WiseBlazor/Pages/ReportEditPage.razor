@@ -67,8 +67,11 @@
         <h2>Параметры запроса</h2>
         @if (_reportConfig.CustomParameters != null)
         {
-            @foreach (var par in _reportConfig.CustomParameters)
+            @for (int i = 0; i < _reportConfig.CustomParameters.Count; i++)
             {
+                var par = _reportConfig.CustomParameters[i];
+                var parameterId = par.Id;
+                var index = i;
                 <form>
                     <div class="form-row form-group align-items-center">
                         <div class="col-auto">
@@ -90,8 +93,8 @@
                         </div>
                         <div class="col-auto">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="checkPar@(par.Id)" @bind="par.Required" />
-                                <label class="form-check-label" for="checkPar@(par.Id)">Обязательный</label>
+                                <input class="form-check-input" type="checkbox" id="checkPar@(i)" @bind="par.Required" />
+                                <label class="form-check-label" for="checkPar@(i)">Обязательный</label>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -109,9 +112,8 @@
         <hr>
         <h2>Проверка запроса</h2>
         
-        <ReportParametersComponent Report="_reportConfig" />
+        <ReportParametersComponent Report="_reportConfig" Run="_run" />
 
-        
         <div class="form-row">
             <div class="form-group">
                 <button class="btn btn-primary"
@@ -170,6 +172,8 @@
 
     private ReportConfiguration _reportConfig = new ReportConfiguration();
 
+    private ReportRun _run = new ReportRun();
+
     private string _displayPopoverId;
     private string _popoverMessage;
     private bool _switch;
@@ -220,7 +224,14 @@
         if (_reportConfig.CustomParameters == null)
             _reportConfig.CustomParameters = new List<ReportCustomParameter>();
 
-        _reportConfig.CustomParameters.Add(new ReportCustomParameter());
+        var id = _reportConfig.CustomParameters.Min(p => p.Id);
+
+        if (id > 0)
+            id = 0;
+
+        id--; // we use negative id for object not yet saved
+
+        _reportConfig.CustomParameters.Add(new ReportCustomParameter() { Id = id });
         StateHasChanged();
     }
 
@@ -234,7 +245,9 @@
 
         _reportConfig.DataProvider = new DataProviderConfiguration { Id = ProviderId };
 
-        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", _reportConfig);
+        var reportWithParams = new ReportWithParameters { Report = _reportConfig, Run = _run };
+
+        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", reportWithParams);
 
         var parameters = new ModalParameters();
         parameters.Add("ReportResponse", _serverTestResponse);
@@ -267,9 +280,7 @@
             parameters.Add("ConfirmText", $"Вы уверены что хотите удалить отчет {_reportConfig.Title} ?");
 
             Modal.OnClose += ModalClosed;
-
             Modal.Show<ConfirmDialogComponent>("Подтвердите", parameters);
-
         }
     }
 
@@ -302,6 +313,15 @@
         StateHasChanged();
 
         _reportConfig.DataProvider = new DataProviderConfiguration { Id = ProviderId };
+
+        if (_reportConfig.CustomParameters != null)
+        {
+            foreach (var par in _reportConfig.CustomParameters)
+            {
+                if (par.Id < 0) // it's a new parameter
+                    par.Id = 0;
+            }
+        }
 
         ServerResponse response;
 
