@@ -7,13 +7,19 @@
 @code {
 
     private string _markdownHtml;
+    private string _markdownRaw;
 
     [Parameter]
-    public string MarkdownRaw { get; set; }
-
-
-    protected override async Task OnInitializedAsync()
+    public string MarkdownRaw
     {
-        _markdownHtml = Markdown.ToHtml(MarkdownRaw, Pipeline);
+        get => _markdownRaw;
+        set
+        {
+            _markdownRaw = value;
+            if (!string.IsNullOrEmpty(MarkdownRaw))
+                _markdownHtml = Markdown.ToHtml(MarkdownRaw, Pipeline);
+            StateHasChanged();
+        }
     }
+
 }

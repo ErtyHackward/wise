@@ -26,7 +26,7 @@ namespace WiseApi
             modelBuilder.Entity<ReportRun>().Property(p => p.StartedAt).ValueGeneratedOnAdd();
             modelBuilder.Entity<ReportRun>().Property(p => p.CustomParameterValues).HasConversion(
                 v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
-                v => JsonConvert.DeserializeObject<Dictionary<int, object>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
+                v => JsonConvert.DeserializeObject<List<ParameterValue>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                 );
 
             modelBuilder.Entity<DataProviderConfiguration>().Property(p => p.CreatedAt).ValueGeneratedOnAdd();

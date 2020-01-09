@@ -33,11 +33,4 @@ namespace WiseDomain
 
         public string ErrorText { get; set; }
     }
-
-    public class ReportWithParameters
-    {
-        public ReportConfiguration Report { get; set; }
-
-        public ReportRun Run { get; set; }
-    }
 }

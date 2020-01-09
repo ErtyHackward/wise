@@ -17,6 +17,13 @@ namespace WiseDomain
 
         public DateTime? QueryTimeTo { get; set; }
 
-        public Dictionary<int, object> CustomParameterValues { get; set; }
+        public List<ParameterValue> CustomParameterValues { get; set; }
+    }
+
+    public struct ParameterValue
+    {
+        public int Id { get; set; }
+
+        public object Value { get; set; }
     }
 }

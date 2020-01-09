@@ -18,7 +18,7 @@
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="titleEdit">Название отчета</label>
-                <input class="form-control" id="titleEdit" type="text" @bind="_reportConfig.Title" />
+                <input class="form-control" id="titleEdit" type="text" @bind="_reportConfig.Title">
             </div>
         </div>
         <div class="form-row">
@@ -60,7 +60,7 @@
             <div class="form-group col-md-12">
                 <label for="sqlTextArea">Текст SQL запроса</label>
                 <textarea class="form-control sql-text" id="sqlTextArea" placeholder="" rows="6" @bind="_reportConfig.Query"></textarea>
-                <small id="sqlTextHelp" class="form-text text-muted">Подставь в запрос параметры в виде <span class="sql-text">$myParam</span>, чтобы задать время <span class="sql-text">WHERE $timeFilter</span></small>
+                <small id="sqlTextHelp" class="form-text text-muted">Подставь в запрос параметры в виде <span class="sql-text">$myParam</span>, чтобы задать время <span class="sql-text">WHERE timestamp $timeFilter</span></small>
             </div>
         </div>
         <hr>
@@ -75,10 +75,10 @@
                 <form>
                     <div class="form-row form-group align-items-center">
                         <div class="col-auto">
-                            <input class="form-control" type="text" placeholder="Название параметра" @bind="par.Title" />
+                            <input class="form-control" type="text" placeholder="Название параметра" @bind="par.Title">
                         </div>
                         <div class="col-auto">
-                            <input class="form-control sql-text" type="text" placeholder="Идентификатор параметра" @bind="par.QueryId" />
+                            <input class="form-control sql-text" type="text" placeholder="Идентификатор параметра" @bind="par.QueryId">
                         </div>
                         <div class="col-auto">
                             <select class="form-control" @bind="par.Type">
@@ -89,11 +89,11 @@
                             </select>
                         </div>
                         <div class="col-auto">
-                            <input class="form-control sql-text" type="text" placeholder="Значение параметра" @bind="par.QueryValue" />
+                            <input class="form-control sql-text" type="text" placeholder="Значение параметра" @bind="par.QueryValue">
                         </div>
                         <div class="col-auto">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="checkPar@(i)" @bind="par.Required" />
+                                <input class="form-check-input" type="checkbox" id="checkPar@(i)" @bind="par.Required">
                                 <label class="form-check-label" for="checkPar@(i)">Обязательный</label>
                             </div>
                         </div>
@@ -162,10 +162,6 @@
 
     public int ProviderId { get; set; }
 
-    DateTimeOffset? StartDate { get; set; } = DateTime.Today.AddDays(-7);
-
-    DateTimeOffset? EndDate { get; set; } = DateTime.Today.AddDays(1).AddTicks(-1);
-
     private List<DataProviderConfiguration> _providers;
 
     private ServerResponse<ReportResponse> _serverTestResponse;
@@ -177,8 +173,6 @@
     private string _displayPopoverId;
     private string _popoverMessage;
     private bool _switch;
-
-
 
     private void ShowWarningPopover(string elementId, string message)
     {
@@ -245,9 +239,9 @@
 
         _reportConfig.DataProvider = new DataProviderConfiguration { Id = ProviderId };
 
-        var reportWithParams = new ReportWithParameters { Report = _reportConfig, Run = _run };
+        _run.Report = _reportConfig;
 
-        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", reportWithParams);
+        _serverTestResponse = await Backend.PostApiAsync<ReportResponse>("reports/test", _run);
 
         var parameters = new ModalParameters();
         parameters.Add("ReportResponse", _serverTestResponse);

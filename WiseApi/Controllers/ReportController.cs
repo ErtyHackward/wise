@@ -43,12 +43,11 @@ namespace WiseApi.Controllers
 
         // POST: api/reports/test
         [HttpPost(), Route("test")]
-        public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportWithParameters bundle)
+        public async Task<ActionResult<ReportResponse>> TestReport([FromBody] ReportRun run)
         {
-            var config = bundle.Report;
-            var reportParameters = bundle.Run?.CustomParameterValues;
-            var run = bundle.Run;
-
+            var config = run.Report;
+            var reportParameters = run.CustomParameterValues;
+            
             var providerInfo = await _context.Providers.FindAsync(config.DataProvider.Id);
             var resp = new ReportResponse();
 
@@ -58,13 +57,12 @@ namespace WiseApi.Controllers
             {
                 foreach (var par in config.CustomParameters)
                 {
-                    object value = null;
-                    reportParameters?.TryGetValue(par.Id, out value);
+                    object value = reportParameters?.Find(p => p.Id == par.Id).Value;
 
                     switch (par.Type)
                     {
                         case ReportCustomParameterType.Check:
-                            resp.FinalQuery = resp.FinalQuery.Replace(par.QueryId, value is bool == true ? par.QueryValue : string.Empty, StringComparison.InvariantCultureIgnoreCase);
+                            resp.FinalQuery = resp.FinalQuery.Replace(par.QueryId, value is true ? par.QueryValue : string.Empty, StringComparison.InvariantCultureIgnoreCase);
                             break;
                         default:
                             resp.FinalQuery = resp.FinalQuery.Replace(par.QueryId, value == null ? string.Empty : par.QueryValue, StringComparison.InvariantCultureIgnoreCase);
@@ -75,7 +73,7 @@ namespace WiseApi.Controllers
 
             if (run != null && resp.FinalQuery.Contains("$timeFilter"))
             {
-                resp.FinalQuery = resp.FinalQuery.Replace("$timeFilter", $"BETWEEN '{run.QueryTimeFrom:yyyy-MM-dd hh:mm}' AND '{run.QueryTimeTo:yyyy-MM-dd hh:mm}'");
+                resp.FinalQuery = resp.FinalQuery.Replace("$timeFilter", $"BETWEEN '{run.QueryTimeFrom:s}' AND '{run.QueryTimeTo:s}'");
             }
 
             try
@@ -88,8 +86,8 @@ namespace WiseApi.Controllers
                 var timer = Stopwatch.StartNew();
 
                 using (connection)
-                using (var command = connection.CreateCommand())
                 {
+                    using var command = connection.CreateCommand();
                     command.CommandText = resp.FinalQuery;
 
                     using (var reader = command.ExecuteReader())
@@ -118,7 +116,7 @@ namespace WiseApi.Controllers
 
                                 if (count < 10)
                                 {
-                                    List<object> items = new List<object>();
+                                    var items = new List<object>();
                                     for (int i = 0; i < reader.FieldCount; i++)
                                     {
                                         items.Add(reader.GetValue(i));

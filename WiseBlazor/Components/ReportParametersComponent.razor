@@ -1,10 +1,17 @@
-﻿
-@if (Report?.Query?.Contains("$timeFilter") == true)
+﻿@if (Report?.Query?.Contains("$timeFilter") == true)
 {
     <div class="form-row">
-        <div class="form-group col-md-3">
-            <label>Диапазон выгрузки</label>
-            <DateRangePicker class="form-control" CustomRangeLabel="Выбрать" Ranges="DateRangeHelper.GetDefaultRanges()" @bind-StartDate="StartDate" @bind-EndDate="EndDate" Drops="DropsType.Up" />
+        <div class="form-group col-auto">
+            <label>Выбери, за какое время будем выгружать:</label>
+            <DateRangePicker class="form-control" 
+                             CustomRangeLabel="Выбрать" 
+                             Ranges="DateRangeHelper.GetDefaultRanges()" 
+                             @bind-StartDate="StartDate" 
+                             @bind-EndDate="EndDate"  
+                             Drops="DropsType.Up" 
+                             ApplyLabel="Применить"
+                             CancelLabel="Отмена"
+                              />
         </div>
     </div>
 }
@@ -24,14 +31,14 @@ else
             {
                 case ReportCustomParameterType.Check:
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="par@(i)" @onchange="(e) => ValueChanged(parameterId, e)" />
+                        <input class="form-check-input" type="checkbox" id="par@(i)" @onchange="(e) => ValueChanged(parameterId, e)">
                         <label class="form-check-label" for="par@(i)">@par.Title</label>
                     </div>
                     break;
                 case ReportCustomParameterType.CustomString:
                     <div class="col-auto">
                         <label for="par@(i)">@par.Title</label>
-                        <input id="par@(i)" class="form-control" type="text" @onchange="(e) => ValueChanged(parameterId, e)" />
+                        <input id="par@(i)" class="form-control" type="text" @onchange="(e) => ValueChanged(parameterId, e)">
                     </div>
                     break;
                 default:
@@ -54,55 +61,54 @@ else
     DateTimeOffset? EndDate { get; set; } = DateTime.Today.AddDays(1).AddTicks(-1);
 
     private ReportRun _run = new ReportRun();
-    private ReportConfiguration _report = new ReportConfiguration();
 
     [Parameter]
-    public ReportConfiguration Report {
-        get { return _report; }
-        set {
-            _report = value;
-        }
-    }
+    public ReportConfiguration Report { get; set; } = new ReportConfiguration();
 
     [Parameter]
     public ReportRun Run {
         get {
+            return _run;
+        }
+        set { 
+            _run = value; 
 
-            if (_report.CustomParameters != null)
+            if (Report.CustomParameters != null)
             {
                 if (_run.CustomParameterValues != null)
                 {
-                    var allkeys = _run.CustomParameterValues.Keys.ToList();
+                    var allkeys = _run.CustomParameterValues.Select(p => p.Id).ToList();
                     foreach (var key in allkeys)
                     {
-                        if (!_report.CustomParameters.Any(p => p.Id == key))
-                            _run.CustomParameterValues.Remove(key);
+                        if (!Report.CustomParameters.Any(p => p.Id == key))
+                            _run.CustomParameterValues.RemoveAll(p => p.Id == key);
                     }
                 }
             }
             else
                 _run.CustomParameterValues = null;
 
-            if (_report.Query?.Contains("$timeFilter") == true)
+            if (Report.Query?.Contains("$timeFilter") == true)
             {
-                _run.QueryTimeFrom = StartDate.HasValue ? (DateTime?)StartDate.Value.DateTime : null;
-                _run.QueryTimeTo = EndDate.HasValue ? (DateTime?)EndDate.Value.DateTime : null;
+                _run.QueryTimeFrom = StartDate?.DateTime;
+                _run.QueryTimeTo = EndDate?.DateTime;
             }
 
-            return _run;
         }
-        set { _run = value; }
     }
 
     private void ValueChanged(int id, ChangeEventArgs e)
     {
         if (_run.CustomParameterValues == null)
-            _run.CustomParameterValues = new Dictionary<int, object>();
+            _run.CustomParameterValues = new List<WiseDomain.ParameterValue>();
 
-        if (_run.CustomParameterValues.ContainsKey(id))
-            _run.CustomParameterValues[id] = e.Value;
+        if (_run.CustomParameterValues.Any(p => p.Id == id))
+        {
+            var index = _run.CustomParameterValues.FindIndex(p => p.Id == id);
+            _run.CustomParameterValues[index] = new WiseDomain.ParameterValue() { Id = id, Value = e.Value };
+        }
         else
-            _run.CustomParameterValues.Add(id, e.Value);
+            _run.CustomParameterValues.Add(new WiseDomain.ParameterValue() { Id = id, Value = e.Value });
     }
 
     protected override async Task OnInitializedAsync()

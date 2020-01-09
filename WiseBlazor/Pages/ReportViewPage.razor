@@ -3,7 +3,7 @@
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
 
-    <div class="page">
+    <div class="page container">
         @if (_report == null)
         {
             <p><em>Загрузка...</em></p>
@@ -11,15 +11,17 @@
         else
         {
             <h1>@_report.Title</h1>
+            <button class="btn btn-primary"
+                    @onclick="@(e => Nav.NavigateTo($"/reports/{Id}/edit"))">
+                <span class="oi oi-pencil" aria-hidden="true"></span> Изменить
+            </button>
             <MarkdownComponent MarkdownRaw="@_report.Description" />
+            <hr>
+            <ReportParametersComponent Report="@_report" Run="@_run" />
             <hr>
             <div>
                 <button class="btn btn-primary">
                     <span class="oi oi-media-play" aria-hidden="true"></span> Выполнить запрос
-                </button>
-                <button class="btn btn-primary"
-                        @onclick="@(e => Nav.NavigateTo($"/reports/{Id}/edit"))">
-                    <span class="oi oi-pencil" aria-hidden="true"></span> Изменить
                 </button>
             </div>
         }
@@ -32,7 +34,8 @@
     public int Id { get; set; }
 
     private ServerResponse<ReportConfiguration> _serverResponse;
-    private ReportConfiguration _report;
+    private ReportConfiguration _report = new ReportConfiguration();
+    private ReportRun _run = new ReportRun();
 
     protected override async Task OnInitializedAsync()
     {
