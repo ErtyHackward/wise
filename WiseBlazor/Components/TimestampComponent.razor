@@ -1,0 +1,9 @@
+﻿<span title="@DateTime ">@TimeFormatter.GetString(DateTime.Now - DateTime) назад</span>
+
+
+@code {
+
+    [Parameter]
+    public DateTime DateTime { get; set; }
+
+}

@@ -2,6 +2,8 @@
 @inject Backend Backend
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
+@inject HubConnectionBuilder HubConnectionBuilder
+@implements IDisposable
 
     <div class="page container">
         @if (_report == null)
@@ -10,20 +12,102 @@
         }
         else
         {
-            <h1>@_report.Title</h1>
-            <button class="btn btn-primary"
-                    @onclick="@(e => Nav.NavigateTo($"/reports/{Id}/edit"))">
-                <span class="oi oi-pencil" aria-hidden="true"></span> Изменить
-            </button>
-            <MarkdownComponent MarkdownRaw="@_report.Description" />
-            <hr>
-            <ReportParametersComponent Report="@_report" Run="@_run" />
-            <hr>
-            <div>
-                <button class="btn btn-primary">
-                    <span class="oi oi-media-play" aria-hidden="true"></span> Выполнить запрос
-                </button>
+            <div class="row">
+                <div class="col-auto">
+                    <h1>@_report.Title</h1>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary"
+                            @onclick="@(e => Nav.NavigateTo($"/reports/{Id}/edit"))">
+                        <span class="oi oi-pencil" aria-hidden="true"></span> Изменить
+                    </button>
+                </div>
             </div>
+            <div class="row mt-1">
+
+            </div>
+            <div class="row mt-3">
+                <div class="col-auto">
+                    <MarkdownComponent MarkdownRaw="@_report.Description" />
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-auto">
+                    <h2>Параметры</h2>
+                    <ReportParametersComponent Report="@_report" Run="@_run" />
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-auto">
+                    <button class="btn btn-primary" @onclick="BeginQuery">
+                        <span class="oi oi-media-play" aria-hidden="true"></span> Начать выгрузку
+                    </button>
+                </div>
+            </div>
+            @if (_runs?.List?.Count > 0)
+            {
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h2>Предыдущие выгрузки:</h2>
+                        @foreach (var run in _runs.List)
+                        {
+                            <div class="card m-2">
+                                <div class="row mt-3 card-body">
+                                    <div class="col-3">
+                                        @switch (run.Status)
+                                        {
+                                            case ReportRunStatus.Done:
+                                                <span class="oi oi-check text-success" aria-hidden="true"></span>
+                                                break;
+                                            case ReportRunStatus.Failed:
+                                                <span class="oi oi-x text-danger" aria-hidden="true"></span>
+                                                break;
+                                            case ReportRunStatus.Querying:
+                                                <div class="lds-dual-ring"></div>
+                                                break;
+                                            case ReportRunStatus.None:
+                                                <span class="oi oi-question-mark" aria-hidden="true"></span>
+                                                break;
+                                        }
+                                        <small><TimestampComponent DateTime="@run.StartedAt" /></small>
+                                    </div>
+                                    @if (run.Status == ReportRunStatus.Done)
+                                    {
+                                        <div class="col-auto">
+                                            <div class="btn-group">
+                                                <a href="@GetDownloadPathBase()/reportfiles/@_report.Id/@run.Id/report.xlsx" class="btn btn-success" download>
+                                                    <span class="fas fa-file-excel" aria-hidden="true"></span> Скачать в Excel
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="btn-group">
+                                                <a href="@GetDownloadPathBase()/reportfiles/@_report.Id/@run.Id/report.csv" class="btn btn-success" download>
+                                                    <span class="fas fa-file-csv" aria-hidden="true"></span> Скачать в csv
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (run.ErrorText != null)
+                                    {
+                                        <div class="col-auto">
+                                            <div class="alert alert-danger">@run.ErrorText</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row mt-3">
+                    <div class="col-auto">
+                        <div class="alert alert-info">Выгрузку еще никто не делал</div>
+                    </div>
+                </div>
+            }
         }
     </div>
 
@@ -37,10 +121,60 @@
     private ReportConfiguration _report = new ReportConfiguration();
     private ReportRun _run = new ReportRun();
 
+    private Paginated<List<ReportRun>> _runs = new Paginated<List<ReportRun>>();
+
+    private HubConnection _hubConnection;
+
+    private string GetDownloadPathBase()
+    {
+        return Backend.Uri.AbsoluteUri.TrimEnd('/');
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var resp = await Backend.GetApiAsync<ReportConfiguration>($"reports/{Id}");
         _report = resp.Response;
+
+        RefreshRuns();
+
+        _hubConnection = HubConnectionBuilder.WithUrl("http://localhost:64460/reportsHub", opt => { opt.Transport = HttpTransportType.WebSockets; opt.SkipNegotiation = true; }).Build();
+        _hubConnection.On<int, ReportRunStatus>("StatusChanged", StatusChanged);
+
+        _hubConnection.OnClose(exc =>
+        {
+            Console.WriteLine("Connection was closed! " + exc.ToString());
+            return Task.CompletedTask;
+        });
+
+        await _hubConnection.StartAsync();
+
+        _hubConnection.InvokeAsync("Subscribe", _report.Id);
+    }
+
+    private async void RefreshRuns()
+    {
+        var resp = await Backend.GetApiAsync<Paginated<List<ReportRun>>>($"reports/{Id}/runs");
+        _runs = resp.Response;
+        StateHasChanged();
+    }
+
+    private Task StatusChanged(int runId, ReportRunStatus status)
+    {
+        RefreshRuns();
+        return Task.CompletedTask;
+    }
+
+    private async void BeginQuery()
+    {
+        _run.Report = _report;
+
+        var resp = await Backend.PostApiAsync<ReportRun>($"reports/{Id}/begin", _run);
+    }
+
+    public async void Dispose()
+    {
+        await _hubConnection.InvokeAsync("Unsubscribe", _report.Id);
+        _hubConnection.Dispose();
     }
 
 }

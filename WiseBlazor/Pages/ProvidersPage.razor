@@ -4,55 +4,55 @@
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
 
-<div class="page">
-    <h1>Источники данных</h1>
+<div class="page container">
+    <div class="row">
+        <div class="col-auto">
+            <h1>Источники данных</h1>
 
+            @if (_serverResponse == null)
+            {
+                <p><em>Загрузка...</em></p>
+            }
+            else
+            {
+                if (!_serverResponse.Success)
+                {
+                    <p><em>Не удалось загрузить: @_serverResponse.ErrorText </em></p>
+                }
+                else
+                {
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Тип</th>
+                                <th>Название</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var provider in _serverResponse.Response)
+                            {
+                                <tr>
+                                    <td class="trim-td provider-icon-td"><img src="@DataProviderConfiguration.BuiltInProviders.FirstOrDefault(p => p.CLRType == provider.DataProviderType).IconPath"></td>
+                                    <td class="trim-td provider-title-td"><a href="/providers/@provider.Id/edit">@provider.Title</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
 
-
-    @if (_serverResponse == null)
-    {
-        <p><em>Загрузка...</em></p>
-    }
-    else
-    {
-        if (!_serverResponse.Success)
-        {
-            <p><em>Не удалось загрузить: @_serverResponse.ErrorText </em></p>
-        }
-        else
-        {
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>Тип</th>
-                        <th>Название</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var provider in _serverResponse.Response)
-                    {
-                        <tr>
-                            <td class="trim-td provider-icon-td"><img src="@DataProviderConfiguration.BuiltInProviders.FirstOrDefault(p => p.CLRType == provider.DataProviderType).IconPath"></td>
-                            <td class="trim-td provider-title-td"><a href="/providers/@provider.Id/edit">@provider.Title</a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-
-        <div>
-            <button class="btn btn-primary"
-                    @onclick="@(e => UpdateReport())">
-                Обновить
-            </button>
-            <button class="btn btn-primary"
-                    @onclick="@(e => Nav.NavigateTo("/providers/new"))">
-                <span class="oi oi-plus" aria-hidden="true"></span> Добавить
-            </button>
+                <div>
+                    <button class="btn btn-primary"
+                            @onclick="@(e => UpdateReport())">
+                        Обновить
+                    </button>
+                    <button class="btn btn-primary"
+                            @onclick="@(e => Nav.NavigateTo("/providers/new"))">
+                        <span class="oi oi-plus" aria-hidden="true"></span> Добавить
+                    </button>
+                </div>
+            }
         </div>
-
-
-    }
+    </div>
 </div>
 
 @code {

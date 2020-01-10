@@ -8,9 +8,14 @@ namespace WiseApi.Hubs
 {
     public class ReportsHub : Hub
     {
-        public async Task SendMessage(int reportId, string message)
+        public async Task Subscribe(int reportId)
         {
-            await Clients.All.SendAsync("ReportStatus", reportId, message);
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"report{reportId}");
+        }
+
+        public async Task Unsubscribe(int reportId)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"report{reportId}");
         }
     }
 }

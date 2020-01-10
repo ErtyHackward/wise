@@ -20,11 +20,13 @@ namespace WiseApi.Controllers
     {
         private readonly WiseContext _context;
         private readonly IHubContext<ReportsHub> _hubContext;
+        private readonly ReportRunnerService _service;
 
-        public ReportController(WiseContext context, IHubContext<ReportsHub> hub)
+        public ReportController(WiseContext context, IHubContext<ReportsHub> hub, ReportRunnerService service)
         {
             _context = context;
             _hubContext = hub;
+            _service = service;
         }
 
         // GET: api/reports
@@ -34,11 +36,19 @@ namespace WiseApi.Controllers
             return await _context.Reports.ToListAsync();
         }
 
-        // GET: api/reports/begin/5
-        [HttpPost("begin/{id}")]
-        public async Task<IActionResult> BeginQuery()
+        // POST: api/reports/5/begin
+        [HttpPost("{id}/begin")]
+        public async Task<ReportRun> BeginQuery([FromBody] ReportRun run)
         {
-            return Ok();
+
+            run.Report = await _context.Reports.FindAsync(run.Report.Id);
+
+            _context.Runs.Add(run);
+            await _context.SaveChangesAsync();
+
+            _service.RunAsync(run);
+
+            return run; //CreatedAtAction("GetReportRuns", new { id = run.Report.Id }, run);
         }
 
         // POST: api/reports/test
@@ -71,7 +81,7 @@ namespace WiseApi.Controllers
                 }
             }
 
-            if (run != null && resp.FinalQuery.Contains("$timeFilter"))
+            if (resp.FinalQuery.Contains("$timeFilter"))
             {
                 resp.FinalQuery = resp.FinalQuery.Replace("$timeFilter", $"BETWEEN '{run.QueryTimeFrom:s}' AND '{run.QueryTimeTo:s}'");
             }
@@ -92,7 +102,7 @@ namespace WiseApi.Controllers
 
                     using (var reader = command.ExecuteReader())
                     {
-                        List<List<object>> result = new List<List<object>>();
+                        var result = new List<List<object>>();
                         
                         resp.ReportId = 0;
                         resp.PreviewValues = result;
@@ -152,6 +162,31 @@ namespace WiseApi.Controllers
             }
 
             return reportConfiguration;
+        }
+
+        // GET: api/reports/5/runs
+        [HttpGet("{id}/runs")]
+        public async Task<ActionResult<Paginated<List<ReportRun>>>> GetReportRuns(int id, int page = 1)
+        {
+            var paginated = new Paginated<List<ReportRun>>
+            {
+                ItemsPerPage = 10, 
+                Page = page
+            };
+
+            paginated.List = await _context.Runs.Where(r => r.Report.Id == id).OrderByDescending(r => r.StartedAt).Skip(paginated.Skip).Take(paginated.ItemsPerPage).ToListAsync();
+
+            if (paginated.List == null)
+            {
+                return NotFound();
+            }
+
+            if (paginated.Page == 1 && paginated.List.Count < paginated.ItemsPerPage)
+                paginated.TotalPages = 1;
+            else
+                paginated.TotalPages = await _context.Runs.Where(r => r.Report.Id == id).CountAsync();
+            
+            return paginated;
         }
 
         // PUT: api/reports/5

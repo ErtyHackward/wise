@@ -7,6 +7,7 @@ using WiseBlazor.Components;
 using Blazored.Modal;
 using Blazor.Extensions;
 using Markdig;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace WiseBlazor
 {
@@ -23,11 +24,13 @@ namespace WiseBlazor
                 .SetMinimumLevel(LogLevel.Trace)
             );
             services.AddTransient<HubConnectionBuilder>();
+            
         }
 
         public void Configure(IComponentsApplicationBuilder app)
         {
             app.AddComponent<App>("app");
+            app.UseLocalTimeZone();
         }
     }
 }

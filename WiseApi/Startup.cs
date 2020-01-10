@@ -29,6 +29,7 @@ namespace WiseApi
             services.AddCors();
             services.AddDbContext<WiseContext>();
             services.AddSignalR();
+            services.AddSingleton<ReportRunnerService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,7 +41,7 @@ namespace WiseApi
             }
 
             app.UseRouting();
-
+            app.UseStaticFiles();
             app.UseAuthorization();
             app.UseCors(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 

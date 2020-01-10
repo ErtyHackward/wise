@@ -17,7 +17,19 @@ namespace WiseDomain
 
         public DateTime? QueryTimeTo { get; set; }
 
+        public ReportRunStatus Status { get; set; }
+        
+        public string ErrorText { get; set; }
+
         public List<ParameterValue> CustomParameterValues { get; set; }
+    }
+
+    public enum ReportRunStatus
+    {
+        None,
+        Querying,
+        Done,
+        Failed
     }
 
     public struct ParameterValue

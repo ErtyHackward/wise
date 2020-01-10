@@ -58,6 +58,8 @@ namespace WiseBlazor.Components
         }
 
         private Uri _apiBaseUri = new Uri("http://localhost:64460/api/");
+        
+        public Uri Uri => new Uri("http://localhost:64460/");
 
         /// <summary>
         /// 
