@@ -9,6 +9,8 @@ namespace WiseDomain
 
         public ReportConfiguration Report { get; set; }
 
+        public User User { get; set; }
+
         public DateTime StartedAt { get; set; }
 
         public DateTime? FinishedAt { get; set; }

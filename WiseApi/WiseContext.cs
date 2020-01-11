@@ -18,6 +18,10 @@ namespace WiseApi
 
         public DbSet<ReportCustomParameter> Parameters { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<UserGroup> Groups { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => 
             optionsBuilder.UseMySql("Server=localhost;Database=wise;Uid=wise;Pwd=SuK1jo1Eb44e;");
 
@@ -35,7 +39,37 @@ namespace WiseApi
             modelBuilder.Entity<ReportConfiguration>().Property(p => p.CreatedAt).ValueGeneratedOnAdd();
             modelBuilder.Entity<ReportConfiguration>().Property(p => p.UpdatedAt).ValueGeneratedOnAddOrUpdate();
 
+            // many-to-many User <-> Groups
+            modelBuilder.Entity<UserGroupJoin>()
+                .HasKey(t => new { t.UserId, t.GroupId });
+
+            modelBuilder.Entity<UserGroupJoin>()
+                .HasOne(pt => pt.User)
+                .WithMany(p => p.UserGroups)
+                .HasForeignKey(pt => pt.UserId);
+
+            modelBuilder.Entity<UserGroupJoin>()
+                .HasOne(pt => pt.Group)
+                .WithMany(t => t.UserGroups)
+                .HasForeignKey(pt => pt.GroupId);
+
+            // many-to-many Report <-> Groups
+            modelBuilder.Entity<ReportGroupJoin>()
+                .HasKey(t => new { t.ReportId, t.GroupId });
+
+            modelBuilder.Entity<ReportGroupJoin>()
+                .HasOne(pt => pt.ReportConfiguration)
+                .WithMany(p => p.ReportGroups)
+                .HasForeignKey(pt => pt.ReportId);
+
+            modelBuilder.Entity<ReportGroupJoin>()
+                .HasOne(pt => pt.ReportGroup)
+                .WithMany(t => t.ReportGroups)
+                .HasForeignKey(pt => pt.GroupId);
+
             base.OnModelCreating(modelBuilder);
         }
+
+        public DbSet<WiseDomain.ReportGroup> ReportGroup { get; set; }
     }
 }
