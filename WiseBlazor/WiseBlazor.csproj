@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.1.0-preview1.19508.20" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.1.0-preview1.19508.20" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.DevServer" Version="3.1.0-preview1.19508.20" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="3.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.ProtectedBrowserStorage" Version="0.1.0-alpha.19521.1" />
     <PackageReference Include="Toolbelt.Blazor.TimeZoneKit" Version="5.0.3" />
   </ItemGroup>

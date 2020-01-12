@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WiseDomain;
 
 namespace WiseBlazor.Components
@@ -21,6 +23,11 @@ namespace WiseBlazor.Components
 
         public string ApiToken { get; set; }
 
+        public string AccessToken { get; set; }
+        public DateTime AccessTokenExpire { get; set; }
+        public string RefreshToken { get; set; }
+        public bool IsAuthorized => !string.IsNullOrEmpty(RefreshToken);
+
         public Backend(LocalStorage localStorage, HttpClient httpClient, NavigationManager navigationManager, ILogger<Backend> logger)
         {
             LocalStorage = localStorage;
@@ -29,6 +36,101 @@ namespace WiseBlazor.Components
             Logger = logger;
 
             HttpClient.Timeout = TimeSpan.FromSeconds(5);
+
+            AccessToken = LocalStorage.GetItem<string>("access_token").Result;
+            RefreshToken = LocalStorage.GetItem<string>("refresh_token").Result;
+            AccessTokenExpire = LocalStorage.GetItem<DateTime>("access_token_expire").Result;
+
+            HttpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", AccessToken);
+        }
+
+        public async Task<bool> ValidateAccessToken()
+        {
+            if (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken))
+                return false;
+
+            if (DateTime.Now > AccessTokenExpire && await RefreshTokenAsync())
+                return true;
+
+            AccessToken = null;
+            RefreshToken = null;
+            await LocalStorage.SetItem<string>("access_token", null);
+            await LocalStorage.SetItem<string>("refresh_token", null);
+
+            return false;
+        }
+
+        public async Task<bool> Authorize(string login, string password)
+        {
+            try
+            {
+                var formContent = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("client_id", "client"),
+                    new KeyValuePair<string, string>("username", login),
+                    new KeyValuePair<string, string>("password", password),
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("client_secret", "secret"),
+                    new KeyValuePair<string, string>("scope", "wiseapi offline_access"),
+                });
+
+                var res = await HttpClient.PostAsync(new Uri(Uri, "connect/token"), formContent);
+                return await HandleAuthResult(res);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Authorization failed");
+                throw;
+            }
+        }
+
+        private async Task<bool> HandleAuthResult(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                var authResp = JsonConvert.DeserializeAnonymousType(await response.Content.ReadAsStringAsync(),
+                    new {access_token = "", expires_in = 0, token_type = "", refresh_token = "", scope = ""});
+
+                AccessToken = authResp.access_token;
+                RefreshToken = authResp.refresh_token;
+                AccessTokenExpire = DateTime.Now.AddSeconds(authResp.expires_in - 5);
+
+                await LocalStorage.SetItem("access_token", AccessToken);
+                await LocalStorage.SetItem("refresh_token", RefreshToken);
+                await LocalStorage.SetItem("access_token_expire", AccessTokenExpire);
+
+                HttpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", AccessToken);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> RefreshTokenAsync()
+        {
+            try
+            {
+                var formContent = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("client_id", "client"),
+                    new KeyValuePair<string, string>("refresh_token", RefreshToken),
+                    new KeyValuePair<string, string>("grant_type", "refresh_token"),
+                    new KeyValuePair<string, string>("client_secret", "secret"),
+                    new KeyValuePair<string, string>("scope", "wiseapi offline_access"),
+                });
+
+                var res = await HttpClient.PostAsync(new Uri(Uri, "connect/token"), formContent);
+
+                return await HandleAuthResult(res);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Unable to refresh token");
+                return false;
+            }
         }
 
         public async Task<ServerResponse<T>> GetAsync<T>(string uri)
@@ -72,6 +174,8 @@ namespace WiseBlazor.Components
         {
             try
             {
+                //if (!ValidateAccessToken())
+                    
                 var result = await HttpClient.GetJsonAsync<T>(new Uri(_apiBaseUri, relativeUri).ToString());
                 return new ServerResponse<T>() { Response = result, Success = true };
             }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -14,6 +16,7 @@ using WiseDomain;
 
 namespace WiseApi.Controllers
 {
+    [Authorize]
     [Route("api/reports")]
     [ApiController]
     public class ReportController : ControllerBase
