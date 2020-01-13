@@ -25,6 +25,7 @@ namespace WiseBlazor
                 .SetMinimumLevel(LogLevel.Trace)
             );
             services.AddTransient<HubConnectionBuilder>();
+            services.AddAuthorizationCore();
             services.AddScoped<AuthenticationStateProvider, WiseAuthStateProvider>();
         }
 

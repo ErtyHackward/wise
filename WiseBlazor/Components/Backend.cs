@@ -29,6 +29,8 @@ namespace WiseBlazor.Components
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(RefreshToken);
 
+        public event EventHandler AuthenticationChanged;
+
         public Backend(ISyncLocalStorageService localStorage, HttpClient httpClient, NavigationManager navigationManager, ILogger<Backend> logger)
         {
             LocalStorage = localStorage;
@@ -56,12 +58,21 @@ namespace WiseBlazor.Components
             if (DateTime.Now > AccessTokenExpire && await RefreshTokenAsync())
                 return true;
 
+            Logout();
+            
+            return false;
+        }
+
+        public void Logout()
+        {
             AccessToken = null;
             RefreshToken = null;
+            Login = null;
             LocalStorage.SetItem("access_token", null);
             LocalStorage.SetItem("refresh_token", null);
+            LocalStorage.SetItem("login", null);
 
-            return false;
+            OnAuthenticationChanged();
         }
 
         public async Task<bool> Authorize(string login, string password)
@@ -108,6 +119,8 @@ namespace WiseBlazor.Components
 
                 HttpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", AccessToken);
+
+                OnAuthenticationChanged();
 
                 return true;
             }
@@ -247,6 +260,10 @@ namespace WiseBlazor.Components
                 return new ServerResponse { ErrorText = x.Message, ErrorCode = 1 };
             }
         }
-        
+
+        protected virtual void OnAuthenticationChanged()
+        {
+            AuthenticationChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

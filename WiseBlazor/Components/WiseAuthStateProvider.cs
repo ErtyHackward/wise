@@ -14,6 +14,7 @@ namespace WiseBlazor.Components
         public WiseAuthStateProvider(Backend backend)
         {
             _backend = backend;
+            _backend.AuthenticationChanged += (_, __) => NotifyAuthenticationStateChanged( GetAuthenticationStateAsync());
         }
 
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
