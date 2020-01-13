@@ -82,14 +82,13 @@ namespace WiseApi
             }
 
             app.UseRouting();
-
-            app.UseIdentityServer();
-
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
+            
             app.UseStaticFiles();
             app.UseAuthorization();
             app.UseCors(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+            app.UseIdentityServer();
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             app.UseEndpoints(endpoints =>
             {

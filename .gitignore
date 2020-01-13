@@ -3,3 +3,4 @@
 */.vs/*
 */obj/*
 WiseApi/wwwroot/*
+WiseApi/tempkey.rsa

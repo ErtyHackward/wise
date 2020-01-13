@@ -8,8 +8,8 @@
   <ItemGroup>
     <PackageReference Include="Blazor.Extensions.Logging" Version="1.0.0" />
     <PackageReference Include="Blazor.Extensions.SignalR" Version="1.0.0" />
-    <PackageReference Include="Blazor.Extensions.Storage" Version="1.0.0" />
     <PackageReference Include="BlazorDateRangePicker" Version="2.0.0" />
+    <PackageReference Include="Blazored.LocalStorage" Version="2.1.1" />
     <PackageReference Include="Blazored.Modal" Version="3.0.0" />
     <PackageReference Include="BlazorStrap" Version="1.1.101" />
     <PackageReference Include="Markdig" Version="0.18.0" />

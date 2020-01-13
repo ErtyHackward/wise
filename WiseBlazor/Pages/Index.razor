@@ -1,4 +1,7 @@
 ﻿@page "/"
+@inject Backend Backend
+@inject ILogger<Backend> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="page container">
     <div class="row">
@@ -11,3 +14,54 @@
         </div>
     </div>
 </div>
+
+
+<button @onclick="@LogUsername">Log username</button>
+<p>@_state</p>
+<button @onclick="@Login">Login</button>
+
+@code {
+
+    private string _state = "";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationStateTask { get; set; }
+
+    private async Task LogUsername()
+    {
+        _state = "";
+        if (_authenticationStateTask != null)
+        {
+            var authState = await _authenticationStateTask;
+            var user = authState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                _state = $"{user.Identity.Name} is authenticated.";
+            }
+            else
+            {
+                _state = $"The user is NOT authenticated.";
+            }
+        }
+
+        var authState2 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user2 = authState2.User;
+
+        if (user2.Identity.IsAuthenticated)
+        {
+            _state += $"[{user2.Identity.Name} is authenticated.]";
+        }
+        else
+        {
+            _state += $"[The user is NOT authenticated.]";
+        }
+
+    }
+
+    private async Task Login()
+    {
+        await Backend.Authorize("pozdnyakov.vv", "2N7JU6IO");
+        StateHasChanged();
+    }
+}

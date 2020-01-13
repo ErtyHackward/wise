@@ -1,12 +1,13 @@
 using Blazor.Extensions.Logging;
-using Blazor.Extensions.Storage;
 using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WiseBlazor.Components;
 using Blazored.Modal;
 using Blazor.Extensions;
+using Blazored.LocalStorage;
 using Markdig;
+using Microsoft.AspNetCore.Components.Authorization;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace WiseBlazor
@@ -15,16 +16,16 @@ namespace WiseBlazor
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddStorage();
+            services.AddBlazoredLocalStorage();
             services.AddSingleton(typeof(Backend));
-            services.AddSingleton((_) => new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+            services.AddSingleton(_ => new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
             services.AddBlazoredModal();
             services.AddLogging(builder => builder
                 .AddBrowserConsole()
                 .SetMinimumLevel(LogLevel.Trace)
             );
             services.AddTransient<HubConnectionBuilder>();
-            
+            services.AddScoped<AuthenticationStateProvider, WiseAuthStateProvider>();
         }
 
         public void Configure(IComponentsApplicationBuilder app)

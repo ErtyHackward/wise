@@ -1,5 +1,4 @@
-﻿using Blazor.Extensions.Storage;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -7,28 +6,30 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Blazored.LocalStorage;
 using Newtonsoft.Json;
 using WiseDomain;
+
 
 namespace WiseBlazor.Components
 {
     public class Backend : ComponentBase
     {
         protected ILogger<Backend> Logger { get; set; }
-        public LocalStorage LocalStorage { get; }
+        public ISyncLocalStorageService LocalStorage { get; }
         public HttpClient HttpClient { get; }
         public NavigationManager NavigationManager { get; }
 
         public string LoginUri { get; set; } = "/login";
-
-        public string ApiToken { get; set; }
-
+        
         public string AccessToken { get; set; }
         public DateTime AccessTokenExpire { get; set; }
         public string RefreshToken { get; set; }
-        public bool IsAuthorized => !string.IsNullOrEmpty(RefreshToken);
+        public string Login { get; private set; }
 
-        public Backend(LocalStorage localStorage, HttpClient httpClient, NavigationManager navigationManager, ILogger<Backend> logger)
+        public bool IsAuthenticated => !string.IsNullOrEmpty(RefreshToken);
+
+        public Backend(ISyncLocalStorageService localStorage, HttpClient httpClient, NavigationManager navigationManager, ILogger<Backend> logger)
         {
             LocalStorage = localStorage;
             HttpClient = httpClient;
@@ -37,14 +38,16 @@ namespace WiseBlazor.Components
 
             HttpClient.Timeout = TimeSpan.FromSeconds(5);
 
-            AccessToken = LocalStorage.GetItem<string>("access_token").Result;
-            RefreshToken = LocalStorage.GetItem<string>("refresh_token").Result;
-            AccessTokenExpire = LocalStorage.GetItem<DateTime>("access_token_expire").Result;
+            AccessToken = LocalStorage.GetItem<string>("access_token");
+            RefreshToken = LocalStorage.GetItem<string>("refresh_token");
+            AccessTokenExpire = LocalStorage.GetItem<DateTime>("access_token_expire");
+            Login = LocalStorage.GetItem<string>("login");
 
-            HttpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", AccessToken);
+            if (!string.IsNullOrEmpty(AccessToken))
+                HttpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", AccessToken);
         }
-
+        
         public async Task<bool> ValidateAccessToken()
         {
             if (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken))
@@ -55,8 +58,8 @@ namespace WiseBlazor.Components
 
             AccessToken = null;
             RefreshToken = null;
-            await LocalStorage.SetItem<string>("access_token", null);
-            await LocalStorage.SetItem<string>("refresh_token", null);
+            LocalStorage.SetItem("access_token", null);
+            LocalStorage.SetItem("refresh_token", null);
 
             return false;
         }
@@ -74,6 +77,9 @@ namespace WiseBlazor.Components
                     new KeyValuePair<string, string>("client_secret", "secret"),
                     new KeyValuePair<string, string>("scope", "wiseapi offline_access"),
                 });
+
+                Login = login;
+                LocalStorage.SetItem("login", Login);
 
                 var res = await HttpClient.PostAsync(new Uri(Uri, "connect/token"), formContent);
                 return await HandleAuthResult(res);
@@ -96,9 +102,9 @@ namespace WiseBlazor.Components
                 RefreshToken = authResp.refresh_token;
                 AccessTokenExpire = DateTime.Now.AddSeconds(authResp.expires_in - 5);
 
-                await LocalStorage.SetItem("access_token", AccessToken);
-                await LocalStorage.SetItem("refresh_token", RefreshToken);
-                await LocalStorage.SetItem("access_token_expire", AccessTokenExpire);
+                LocalStorage.SetItem("access_token", AccessToken);
+                LocalStorage.SetItem("refresh_token", RefreshToken);
+                LocalStorage.SetItem("access_token_expire", AccessTokenExpire);
 
                 HttpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", AccessToken);
@@ -241,33 +247,6 @@ namespace WiseBlazor.Components
                 return new ServerResponse { ErrorText = x.Message, ErrorCode = 1 };
             }
         }
-
-        public async Task<ServerResponse<T>> GetJsonAsync<T>(string uri)
-        {
-            try
-            {
-                ApiToken = await LocalStorage.GetItem<string>("api_token");
-                HttpClient.DefaultRequestHeaders.TryAddWithoutValidation("access-token", ApiToken);
-
-                var result = await HttpClient.GetJsonAsync<ServerResponse<T>>(uri);
-
-                if (!result.Success)
-                {
-                    return default;
-                }
-
-                return result;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                NavigationManager.NavigateTo(LoginUri);
-                return default;
-            }
-            catch (Exception e)
-            {
-                return default;
-            }
-        }
-
+        
     }
 }
