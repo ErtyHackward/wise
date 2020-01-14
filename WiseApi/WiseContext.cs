@@ -39,6 +39,8 @@ namespace WiseApi
             modelBuilder.Entity<ReportConfiguration>().Property(p => p.CreatedAt).ValueGeneratedOnAdd();
             modelBuilder.Entity<ReportConfiguration>().Property(p => p.UpdatedAt).ValueGeneratedOnAddOrUpdate();
 
+            modelBuilder.Entity<User>().HasIndex(b => b.Login).IsUnique();
+
             // many-to-many User <-> Groups
             modelBuilder.Entity<UserGroupJoin>()
                 .HasKey(t => new { t.UserId, t.GroupId });

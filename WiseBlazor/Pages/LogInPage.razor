@@ -2,6 +2,7 @@
 @page "/login"
 @inject Backend Backend
 @inject NavigationManager NavigationManager
+@inject IModalService Modal
 
 <style>
     html,
@@ -26,38 +27,37 @@
         margin: auto;
     }
 
-    .form-signin .checkbox {
-        font-weight: 400;
-    }
+        .form-signin .checkbox {
+            font-weight: 400;
+        }
 
-    .form-signin .form-control {
-        position: relative;
-        box-sizing: border-box;
-        height: auto;
-        padding: 10px;
-        font-size: 16px;
-    }
+        .form-signin .form-control {
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+        }
 
-    .form-signin .form-control:focus {
-        z-index: 2;
-    }
+            .form-signin .form-control:focus {
+                z-index: 2;
+            }
 
-    .form-signin input[type="email"] {
-        margin-bottom: -1px;
-        border-bottom-right-radius: 0;
-        border-bottom-left-radius: 0;
-    }
+        .form-signin input[type="text"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
 
-    .form-signin input[type="password"] {
-        margin-bottom: 10px;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-    }
+        .form-signin input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
 
     .total-width {
         width: 100vw;
     }
-
 </style>
 
 <div class="text-center total-width">
@@ -68,12 +68,7 @@
         <input type="text" id="inputLogin" class="form-control" placeholder="Логин" @bind="LoginStr" required autofocus>
         <label for="inputPassword" class="sr-only">Пароль</label>
         <input type="password" id="inputPassword" class="form-control" placeholder="Пароль" @bind="PasswordStr" required>
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" value="remember-me"> Запомнить меня
-            </label>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" @onclick="Login" >Войти</button>
+        <button class="btn btn-lg btn-primary btn-block" @onclick="Login" disabled="@_disabledLogin" >Войти</button>
         <p class="mt-5 mb-3 text-muted">&copy; @DateTime.Now.Year</p>
     </form>
 </div>
@@ -82,14 +77,37 @@
     public string LoginStr { get; set; }
     public string PasswordStr { get; set; }
 
+    private bool _disabledLogin = false;
+
     private async void Login()
     {
-        var result = await Backend.Authorize(LoginStr, PasswordStr);
+        _disabledLogin = true;
 
-        if (result)
+        try
         {
-            NavigationManager.NavigateTo(RedirectToLogin.RedirectUri);
+            var result = await Backend.Authorize(LoginStr, PasswordStr);
+
+            if (result)
+            {
+                if (!string.IsNullOrEmpty(RedirectToLogin.RedirectUri))
+                    RedirectToLogin.RedirectUri = "/";
+                NavigationManager.NavigateTo(RedirectToLogin.RedirectUri);
+            }
         }
+        catch (Exception e)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("ErrorMessage", e.Message);
+
+            Modal.Show<ModalErrorComponent>("Ошибка", parameters);
+        }
+        finally
+        {
+            _disabledLogin = false;
+            StateHasChanged();
+        }
+
+        
     }
 
 }

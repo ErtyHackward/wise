@@ -4,79 +4,80 @@
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
 @inject IModalService Modal
+@attribute [Authorize]
 
-    <div class="page container">
-        @if (Id == 0)
+<div class="page container">
+    @if (Id == 0)
+    {
+        <h1>Создание нового источника данных</h1>
+    }
+    else
+    {
+        <h1>Редактирование источника данных</h1>
+    }
+
+    <div class="form-row">
+        <div class="form-group col-12">
+            <label for="titleEdit">Название источника</label>
+            <input class="form-control" id="titleEdit" type="text" @bind="_providerConfig.Title" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-12">
+            <label for="descriptionTextArea">Описание для людей</label>
+            <textarea class="form-control" id="descriptionTextArea" @bind="_providerConfig.Description"></textarea>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-12">
+            <label for="providerSelect">Тип провайдера</label>
+            <select class="form-control" id="providerSelect" value="@_providerConfig.DataProviderType" @onchange="@(e => UpdateDefaultConnectionString(e))">
+                <option disabled>Выбери тип провайдера</option>
+                @foreach (var provider in DataProviderConfiguration.BuiltInProviders)
+                {
+                    <option value="@provider.CLRType">@provider.TypeTitle</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-12">
+            <label for="connectionStringTextArea">Строка подключения</label>
+            <textarea class="form-control" id="connectionStringTextArea" @bind="_providerConfig.ConnectionString"></textarea>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-12">
+            <button class="btn btn-primary"
+                    @onclick="@TestConnection">
+                <span class="oi oi-check" aria-hidden="true"></span> Проверить подключение
+            </button>
+            <button class="btn btn-success" id="btnSave"
+                    @onclick="@SaveProvider">
+                <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
+            </button>
+            <button class="btn btn-danger"
+                    @onclick="@DeleteReport">
+                <span class="oi oi-trash" aria-hidden="true"></span> Удалить
+            </button>
+        </div>
+    </div>
+    @if (_displayPopoverId != null)
+    {
+        if (_switch) // fooling the blazor, we need to re-add popover to the DOM, and it is not possible without js right now
         {
-            <h1>Создание нового источника данных</h1>
+            <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+            </BSPopover>
         }
         else
         {
-            <h1>Редактирование источника данных</h1>
+            <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
+                <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
+            </BSPopover>
         }
-
-        <div class="form-row">
-            <div class="form-group col-12">
-                <label for="titleEdit">Название источника</label>
-                <input class="form-control" id="titleEdit" type="text" @bind="_providerConfig.Title" />
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-12">
-                <label for="descriptionTextArea">Описание для людей</label>
-                <textarea class="form-control" id="descriptionTextArea" @bind="_providerConfig.Description"></textarea>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-12">
-                <label for="providerSelect">Тип провайдера</label>
-                <select class="form-control" id="providerSelect" value="@_providerConfig.DataProviderType" @onchange="@(e => UpdateDefaultConnectionString(e))">
-                    <option disabled>Выбери тип провайдера</option>
-                    @foreach (var provider in DataProviderConfiguration.BuiltInProviders)
-                    {
-                        <option value="@provider.CLRType">@provider.TypeTitle</option>
-                    }
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-12">
-                <label for="connectionStringTextArea">Строка подключения</label>
-                <textarea class="form-control" id="connectionStringTextArea" @bind="_providerConfig.ConnectionString"></textarea>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-12">
-                <button class="btn btn-primary"
-                        @onclick="@TestConnection">
-                    <span class="oi oi-check" aria-hidden="true"></span> Проверить подключение
-                </button>
-                <button class="btn btn-success" id="btnSave"
-                        @onclick="@SaveProvider">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Сохранить
-                </button>
-                <button class="btn btn-danger"
-                        @onclick="@DeleteReport">
-                    <span class="oi oi-trash" aria-hidden="true"></span> Удалить
-                </button>
-            </div>
-        </div>
-        @if (_displayPopoverId != null)
-        {
-            if (_switch) // fooling the blazor, we need to re-add popover to the DOM, and it is not possible without js right now
-            {
-                <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
-                    <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
-                </BSPopover>
-            }
-            else
-            {
-                <BSPopover Target="@_displayPopoverId" IsOpen="@(_displayPopoverId != null)" Placement="Placement.Bottom">
-                    <BSPopoverBody><span class="oi oi-warning text-warning" aria-hidden="true"></span> @_popoverMessage</BSPopoverBody>
-                </BSPopover>
-            }
-        }
-    </div>
+    }
+</div>
 
 @code {
 

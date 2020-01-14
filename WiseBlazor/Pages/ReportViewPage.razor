@@ -4,6 +4,8 @@
 @inject NavigationManager Nav
 @inject HubConnectionBuilder HubConnectionBuilder
 @implements IDisposable
+@attribute [Authorize]
+
 
     <div class="page container">
         @if (_report == null)

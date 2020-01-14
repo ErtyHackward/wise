@@ -16,6 +16,8 @@ namespace WiseDomain
 
         public string Ip { get; set; }
 
+        public string AvatarUrl { get; set; }
+
         public DateTime RegisteredAt { get; set; }
 
         public DateTime LastVisitedAt { get; set; }

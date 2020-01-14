@@ -1,0 +1,16 @@
+﻿<div class="alert alert-danger">
+    @_errorText
+</div>
+
+@code {
+
+    [CascadingParameter]
+    ModalParameters Parameters { get; set; }
+
+    private string _errorText;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _errorText = Parameters.Get<string>("ErrorMessage");
+    }
+}

@@ -1,22 +1,15 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using IdentityServer4.AccessTokenValidation;
-using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using WiseApi.Hubs;
 
 namespace WiseApi
@@ -65,7 +58,7 @@ namespace WiseApi
             }).AddIdentityServerAuthentication(options =>
             {
                 options.Authority = "http://localhost:5000";
-                options.ApiName = "api1";
+                options.ApiName = "wiseapi";
                 options.RequireHttpsMetadata = false;
             });
 

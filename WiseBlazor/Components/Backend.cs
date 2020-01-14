@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using Newtonsoft.Json;
@@ -59,7 +60,7 @@ namespace WiseBlazor.Components
                 return true;
 
             Logout();
-            
+
             return false;
         }
 
@@ -193,8 +194,9 @@ namespace WiseBlazor.Components
         {
             try
             {
-                //if (!ValidateAccessToken())
-                    
+//                if (!await ValidateAccessToken())
+//                    return null;
+                
                 var result = await HttpClient.GetJsonAsync<T>(new Uri(_apiBaseUri, relativeUri).ToString());
                 return new ServerResponse<T>() { Response = result, Success = true };
             }
@@ -209,11 +211,15 @@ namespace WiseBlazor.Components
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="relativeUri">Uri after */api/</param>
+        /// <param name="content"></param>
         /// <returns></returns>
         public async Task<ServerResponse<T>> PostApiAsync<T>(string relativeUri, object content)
         {
             try
             {
+                //if (!await ValidateAccessToken())
+                //    return null;
+
                 var result = await HttpClient.PostJsonAsync<T>(new Uri(_apiBaseUri, relativeUri).ToString(), content);
                 return new ServerResponse<T>() { Response = result, Success = true };
             }
@@ -233,6 +239,9 @@ namespace WiseBlazor.Components
         {
             try
             {
+                //if (!await ValidateAccessToken())
+                //    return null;
+
                 await HttpClient.PutJsonAsync(new Uri(_apiBaseUri, relativeUri).ToString(), content);
                 return new ServerResponse() { Success = true };
             }
@@ -252,6 +261,9 @@ namespace WiseBlazor.Components
         {
             try
             {
+                //if (!await ValidateAccessToken())
+                //    return null;
+
                 var result = await HttpClient.DeleteAsync(new Uri(_apiBaseUri, relativeUri).ToString());
                 return new ServerResponse() { Success = true };
             }

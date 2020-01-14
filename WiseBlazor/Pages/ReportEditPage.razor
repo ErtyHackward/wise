@@ -4,6 +4,7 @@
 @inject ILogger<Backend> Logger
 @inject NavigationManager Nav
 @inject IModalService Modal
+@attribute [Authorize]
 
 <div class="page container">
     @if (Id == 0)
@@ -11,7 +12,7 @@
         <h1>Создание нового отчета</h1>
     }
     else
-    { 
+    {
         <h1>Редактирование отчета</h1>
     }
 
@@ -111,7 +112,7 @@
     </button>
     <hr>
     <h2>Проверка запроса</h2>
-        
+
     <ReportParametersComponent Report="_reportConfig" Run="_run" />
 
     <div class="form-row">
