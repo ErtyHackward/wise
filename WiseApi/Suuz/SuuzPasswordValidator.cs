@@ -63,16 +63,26 @@ namespace WiseApi
                             if (info.Result == "success")
                             {
                                 // create/update user in local database
-                                var dbUser = await _wiseContext.Users.Where(u => u.Login == context.UserName).FirstOrDefaultAsync() ?? new User();
+                                var dbUser = await _wiseContext.Users.Include(u => u.UserGroups).ThenInclude(g => g.Group).Where(u => u.Login == context.UserName).FirstOrDefaultAsync() ?? new User();
                                 
                                 dbUser.Login = context.UserName;
                                 dbUser.DisplayName = info.Data.DisplayName;
                                 dbUser.AvatarUrl = $"http://jira.elt/secure/useravatar?ownerId={context.UserName}";
 
-                                if (dbUser.Id == 0)
+                                bool isNew = dbUser.Id == 0;
+
+                                if (isNew)
+                                {
                                     _wiseContext.Users.Add(dbUser);
+                                }
 
                                 await _wiseContext.SaveChangesAsync();
+
+                                if (isNew)
+                                {
+                                    dbUser.UserGroups.Add(new UserGroupJoin(){ GroupId = 1, UserId = dbUser.Id});
+                                    await _wiseContext.SaveChangesAsync();
+                                }
 
                                 context.Result = new GrantValidationResult(
                                     subject: context.UserName,

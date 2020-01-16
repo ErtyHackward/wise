@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using IdentityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +30,27 @@ namespace WiseApi.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
+        }
+
+        [HttpGet("me")]
+        public async Task<ActionResult<User>> GetMe()
+        {
+            var id = HttpContext.User.FindFirstValue(JwtClaimTypes.Subject);
+            
+            var user = await _context.Users.
+                Include(u => u.UserGroups).
+                ThenInclude(g => g.Group).
+                Where(u => u.Login == id).
+                FirstOrDefaultAsync();
+
+            // we need to remove cyclic references to be able to json the result
+            foreach (var userGroupJoin in user.UserGroups)
+            {
+                userGroupJoin.User = null;
+                userGroupJoin.Group.UserGroups = null;
+            }
+
+            return user;
         }
 
         // GET: api/Users/5

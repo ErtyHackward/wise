@@ -32,7 +32,7 @@ namespace WiseApi
                 {
                     //get user from db
 
-                    var user = await _wiseContext.Users.Where(u => u.Login == id).FirstOrDefaultAsync();
+                    var user = await _wiseContext.Users.Include(u => u.UserGroups).ThenInclude(g => g.Group).Where(u => u.Login == id).FirstOrDefaultAsync();
                     
                     //set issued claims to return
                     context.IssuedClaims = user.ToClaims().Where(x => context.RequestedClaimTypes.Contains(x.Type)).ToList();

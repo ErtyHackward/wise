@@ -69,6 +69,9 @@ namespace WiseApi
                 .WithMany(t => t.ReportGroups)
                 .HasForeignKey(pt => pt.GroupId);
 
+            modelBuilder.Entity<UserGroup>().HasData(new UserGroup() {Id = 1, IsAdmin = false, Title = "Пользователь"},
+                new UserGroup() {Id = 2, IsAdmin = true, Title = "Администратор"});
+
             base.OnModelCreating(modelBuilder);
         }
 

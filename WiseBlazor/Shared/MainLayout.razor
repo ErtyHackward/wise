@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject Backend Backend
 
 <BlazoredModal />
 
@@ -7,7 +8,43 @@
 </div>
 
 <div class="main">
+    <div class="top-row px-4">
+        @if (Backend.CurrentUser != null)
+        {
+            <div class="dropdown ml-md-auto ">
+                <button @onblur="OnBlur" @onclick="Toggle" class="profile-button dropdown-toggle">
+                    <img src="@Backend.CurrentUser.AvatarUrl" class="rounded-circle " alt="@Backend.CurrentUser.DisplayName">
+                </button>
+                <div id="myDropdown" class="dropdown-content @_dropClass">
+                    <a href="#" @onclick="Backend.Logout">Выйти</a>
+                </div>
+            </div>
+        }
+    </div>
     <div class="content px-4">
         @Body
     </div>
 </div>
+
+@code {
+
+    private string _dropClass = "";
+
+    protected override void OnInitialized()
+    {
+        Backend.UserUpdated += (sender, args) => StateHasChanged();
+    }
+
+    private async void OnBlur()
+    {
+        await Task.Delay(100);
+        _dropClass = "";
+        StateHasChanged();
+    }
+
+    private void Toggle()
+    {
+        _dropClass = _dropClass == "" ? "show" : "";
+    }
+
+}

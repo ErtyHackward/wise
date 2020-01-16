@@ -23,6 +23,7 @@ app {
 .main .top-row {
     background-color: #e6e6e6;
     border-bottom: 1px solid #d6d5d5;
+    z-index: 1;
 }
 
 .sidebar {
@@ -105,6 +106,39 @@ app {
 
 .sql-text {
     font-family: monospace;
+}
+
+.profile-button {
+    outline: none !important;
+    border: none;
+    background-color: transparent;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+    animation: slide 0.3s ease-out, appear 0.3s;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown a:hover {
+    background-color: #ddd;
+}
+
+.show {
+    display: block;
 }
 
 @media (max-width: 767.98px) {

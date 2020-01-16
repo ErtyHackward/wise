@@ -26,11 +26,13 @@ namespace WiseBlazor.Components
         public string AccessToken { get; set; }
         public DateTime AccessTokenExpire { get; set; }
         public string RefreshToken { get; set; }
-        public string Login { get; private set; }
+        public User CurrentUser { get; private set; }
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(RefreshToken);
 
         public event EventHandler AuthenticationChanged;
+
+        public event EventHandler UserUpdated;
 
         public Backend(ISyncLocalStorageService localStorage, HttpClient httpClient, NavigationManager navigationManager, ILogger<Backend> logger)
         {
@@ -44,19 +46,32 @@ namespace WiseBlazor.Components
             AccessToken = LocalStorage.GetItem<string>("access_token");
             RefreshToken = LocalStorage.GetItem<string>("refresh_token");
             AccessTokenExpire = LocalStorage.GetItem<DateTime>("access_token_expire");
-            Login = LocalStorage.GetItem<string>("login");
 
             if (!string.IsNullOrEmpty(AccessToken))
                 HttpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", AccessToken);
+
+            Logger.LogInformation($"Backend instance created, IsAuth: {IsAuthenticated} Login: {CurrentUser?.Login}");
+
+            GetUserAsync();
         }
-        
+
+        private async Task GetUserAsync()
+        {
+            var resp = await GetApiAsync<User>("users/me");
+            CurrentUser = resp.Response;
+            OnUserUpdated();
+            OnAuthenticationChanged();
+        }
+
         public async Task<bool> ValidateAccessToken()
         {
+            Logger.LogInformation($"Validating access token. Now:{DateTime.Now} Expire:{AccessTokenExpire}");
+
             if (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken))
                 return false;
 
-            if (DateTime.Now > AccessTokenExpire && await RefreshTokenAsync())
+            if (DateTime.Now < AccessTokenExpire || await RefreshTokenAsync())
                 return true;
 
             Logout();
@@ -66,12 +81,12 @@ namespace WiseBlazor.Components
 
         public void Logout()
         {
+            Logger.LogInformation($"Logging out...");
+
             AccessToken = null;
             RefreshToken = null;
-            Login = null;
             LocalStorage.SetItem("access_token", null);
             LocalStorage.SetItem("refresh_token", null);
-            LocalStorage.SetItem("login", null);
 
             OnAuthenticationChanged();
         }
@@ -89,12 +104,14 @@ namespace WiseBlazor.Components
                     new KeyValuePair<string, string>("client_secret", "secret"),
                     new KeyValuePair<string, string>("scope", "wiseapi offline_access"),
                 });
-
-                Login = login;
-                LocalStorage.SetItem("login", Login);
-
+                
                 var res = await HttpClient.PostAsync(new Uri(Uri, "connect/token"), formContent);
-                return await HandleAuthResult(res);
+                var success = await HandleAuthResult(res);
+
+                if (success)
+                    await GetUserAsync();
+
+                return success;
             }
             catch (Exception e)
             {
@@ -131,6 +148,7 @@ namespace WiseBlazor.Components
 
         public async Task<bool> RefreshTokenAsync()
         {
+            Logger.LogInformation($"Refreshing access token...");
             try
             {
                 var formContent = new FormUrlEncodedContent(new[]
@@ -194,9 +212,13 @@ namespace WiseBlazor.Components
         {
             try
             {
-//                if (!await ValidateAccessToken())
-//                    return null;
-                
+                Logger.LogInformation($"Trying Api get AccessToken: {AccessToken} Auth: {IsAuthenticated}");
+
+                if (!await ValidateAccessToken())
+                    return new ServerResponse<T> { ErrorText = "Not authenticated", ErrorCode = 2 };
+
+                Logger.LogInformation($"Validated");
+
                 var result = await HttpClient.GetJsonAsync<T>(new Uri(_apiBaseUri, relativeUri).ToString());
                 return new ServerResponse<T>() { Response = result, Success = true };
             }
@@ -276,6 +298,11 @@ namespace WiseBlazor.Components
         protected virtual void OnAuthenticationChanged()
         {
             AuthenticationChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnUserUpdated()
+        {
+            UserUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
 }

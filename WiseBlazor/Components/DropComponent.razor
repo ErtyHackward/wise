@@ -1,0 +1,49 @@
+﻿<!-- TODO: finish the component -->
+
+<div class="dropdown @Class" @attributes="Attributes">
+    <button @onblur="OnBlur" @onclick="Toggle" class="@ContentButtonClass">
+        @Content
+    </button>
+    <div id="myDropdown" class="dropdown-content @_dropClass">
+        @DropContent
+    </div>            
+</div>
+
+
+
+@code {
+
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public string ContentButtonClass { get; set; }
+
+    [Parameter]
+    public RenderFragment Content { get; set; }
+
+    [Parameter]
+    public RenderFragment DropContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> Attributes { get; set; }
+
+    private string _dropClass = "";
+
+    private async void OnBlur()
+    {
+        await Task.Delay(100);
+        _dropClass = "";
+        StateHasChanged();
+    }
+
+    private void Toggle()
+    {
+        if (_dropClass == "")
+            _dropClass = "show";
+        else
+        {
+            _dropClass = "";
+        }
+    }
+}

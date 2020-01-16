@@ -16,15 +16,10 @@
 </div>
 
 
-<button @onclick="@LogUsername">Log username</button>
-<p>@_state</p>
-<button @onclick="@Login">Login</button>
-<button @onclick="@LogOut">Logout</button>
-
-<AuthorizeView>
+<AuthorizeView Roles="1">
     <Authorized>
-        <h1>Hello !</h1>
-        <p>You can only see this content if you're authenticated.</p>
+        <h1>Hello User!</h1>
+        <p>You can only see this content if you're authenticated as user.</p>
     </Authorized>
     <NotAuthorized>
         <h1>Authentication Failure!</h1>
@@ -35,6 +30,22 @@
         <p>You can only see this content while authentication is in progress.</p>
     </Authorizing>
 </AuthorizeView>
+
+<AuthorizeView Roles="2">
+    <Authorized>
+        <h1>Hello Admin!</h1>
+        <p>You can only see this content if you're authenticated as admin.</p>
+    </Authorized>
+    <NotAuthorized>
+        <h1>Authentication Failure!</h1>
+        <p>You're not signed in.</p>
+    </NotAuthorized>
+    <Authorizing>
+        <h1>Authentication in progress</h1>
+        <p>You can only see this content while authentication is in progress.</p>
+    </Authorizing>
+</AuthorizeView>
+
 
 @code 
 {
@@ -61,16 +72,5 @@
                 _state = $"The user is NOT authenticated.";
             }
         }
-    }
-
-    private async Task Login()
-    {
-        await Backend.Authorize("pozdnyakov.vv", "2N7JU6IO");
-        StateHasChanged();
-    }
-
-    private async Task LogOut()
-    {
-        Backend.Logout();
     }
 }

@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
+using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
@@ -31,6 +32,7 @@ namespace WiseApi
             services.AddDbContext<WiseContext>();
             services.AddSignalR();
             services.AddSingleton<ReportRunnerService>();
+            
 
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             const string connectionString = @"Server=localhost;Database=id4test;Uid=id4login;Pwd=wi4e6u;";
@@ -60,6 +62,7 @@ namespace WiseApi
                 options.Authority = "http://localhost:5000";
                 options.ApiName = "wiseapi";
                 options.RequireHttpsMetadata = false;
+                options.RoleClaimType = JwtClaimTypes.Role;
             });
 
             services.AddTransient<IResourceOwnerPasswordValidator, SuuzPasswordValidator>();
@@ -73,15 +76,17 @@ namespace WiseApi
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseRouting();
             
+            
+            app.UseRouting();
             app.UseStaticFiles();
-            app.UseAuthorization();
             app.UseCors(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
             app.UseIdentityServer();
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            app.UseAuthorization();
+            
+
+            
+            //JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             app.UseEndpoints(endpoints =>
             {
