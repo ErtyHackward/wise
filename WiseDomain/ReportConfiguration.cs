@@ -36,7 +36,20 @@ namespace WiseDomain
         
         public string Description { get; set; }
 
+        public AccessMode AccessMode { get; set; }
+
         public List<ReportGroupJoin> ReportGroups { get; set; }
+
+        public List<ReportGroupUserGroupJoin> AllowedUserGroups { get; set; }
+    }
+
+    public class ReportGroupUserGroupJoin
+    {
+        public int ReportGroupId { get; set; }
+        public ReportGroup ReportGroup { get; set; }
+
+        public int UserGroupId { get; set; }
+        public UserGroup Group { get; set; }
     }
 
     public class ReportGroupJoin

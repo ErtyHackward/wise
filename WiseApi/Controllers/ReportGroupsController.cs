@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using IdentityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +29,12 @@ namespace WiseApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReportGroup>>> GetReportGroup()
         {
-            return await _context.ReportGroup.ToListAsync();
+            if (HttpContext.User.IsInRole("admin"))
+                return await _context.ReportGroup.ToListAsync();
+
+            var id = HttpContext.User.FindFirstValue(JwtClaimTypes.Subject);
+
+            return await _context.ReportGroup.Where(g => g.AccessMode == AccessMode.Everybody || g.AllowedUserGroups.Any(j => j.Group.UserGroups.Any(uj => uj.User.Login == id))).ToListAsync();
         }
 
         // GET: api/ReportGroups/5

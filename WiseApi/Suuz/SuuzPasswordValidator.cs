@@ -7,6 +7,7 @@ using System.Web.Http.Routing;
 using IdentityServer4.Models;
 using IdentityServer4.Validation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using WiseDomain;
 
@@ -17,17 +18,19 @@ namespace WiseApi
     public class SuuzPasswordValidator : IResourceOwnerPasswordValidator
     {
         private readonly WiseContext _wiseContext;
+        private readonly IConfiguration _configuration;
 
-        public SuuzPasswordValidator(WiseContext wiseContext)
+        public SuuzPasswordValidator(WiseContext wiseContext, IConfiguration configuration)
         {
             _wiseContext = wiseContext;
+            _configuration = configuration;
         }
         
-        public static HttpClient CreateHttpClient()
+        public HttpClient CreateHttpClient()
         {
             var client = new HttpClient();
 
-            client.DefaultRequestHeaders.Add("x-suuz-api-key", "");
+            client.DefaultRequestHeaders.Add("x-suuz-api-key", _configuration["SUUZ-KEY"]);
 
             return client;
         }

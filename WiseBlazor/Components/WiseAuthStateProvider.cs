@@ -54,22 +54,26 @@ namespace WiseBlazor.Components
 
     public static class AuthExtensions
     {
-        public static Claim[] ToClaims(this User user)
+        public static IEnumerable<Claim> ToClaims(this User user)
         {
-            var claims = new List<Claim>{
-                new Claim(ClaimTypes.Name, user.DisplayName),
-                new Claim(ClaimTypes.NameIdentifier, user.Login),
-            };
+            yield return new Claim(ClaimTypes.Name, user.DisplayName);
+            yield return new Claim(ClaimTypes.NameIdentifier, user.Login);
 
             if (user.UserGroups != null)
             {
-                foreach (var userGroupId in user.UserGroups.Select(ug => ug.GroupId))
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, userGroupId.ToString()));
-                }
-            }
+                var isAdmin = false;
 
-            return claims.ToArray();
+                foreach (var userGroup in user.UserGroups.Select(ug => ug.Group))
+                {
+                    if (userGroup.IsAdmin)
+                        isAdmin = true;
+
+                    yield return new Claim(ClaimTypes.GroupSid, userGroup.Id.ToString());
+                }
+
+                if (isAdmin)
+                    yield return new Claim(ClaimTypes.Role, "admin");
+            }
         }
     }
 }

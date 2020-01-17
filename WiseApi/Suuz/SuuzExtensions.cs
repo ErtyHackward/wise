@@ -8,26 +8,27 @@ namespace WiseApi
 {
     public static class SuuzExtensions
     {
-        public static Claim[] ToClaims(this User user)
+        public static IEnumerable<Claim> ToClaims(this User user)
         {
-            var claims = new List<Claim>{
-                new Claim(JwtClaimTypes.Name, user.DisplayName),
-                new Claim( JwtClaimTypes.Subject, user.Login),
-                new Claim(JwtClaimTypes.Picture, user.AvatarUrl),
-                new Claim( JwtClaimTypes.Id, user.Id.ToString()),
-            };
-
+            yield return new Claim(JwtClaimTypes.Name, user.DisplayName);
+            yield return new Claim(JwtClaimTypes.Subject, user.Login);
+            yield return new Claim(JwtClaimTypes.Picture, user.AvatarUrl);
+            yield return new Claim(JwtClaimTypes.Id, user.Id.ToString());
+            
             if (user.UserGroups != null)
             {
-                foreach (var userGroupId in user.UserGroups.Select(ug => ug.GroupId))
+                var isAdmin = false;
+                foreach (var userGroup in user.UserGroups.Select(ug => ug.Group))
                 {
-                    claims.Add(new Claim(JwtClaimTypes.Role, userGroupId.ToString()));
+                    if (userGroup.IsAdmin)
+                        isAdmin = true;
+
+                    yield return new Claim("group", userGroup.Id.ToString());
                 }
+
+                if (isAdmin)
+                    yield return new Claim(JwtClaimTypes.Role, "admin");
             }
-
-            return claims.ToArray();
-
-
         }
     }
 }

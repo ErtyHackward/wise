@@ -27,15 +27,16 @@ namespace WiseApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
             services.AddControllers();
             services.AddCors();
-            services.AddDbContext<WiseContext>();
+            services.AddDbContext<WiseContext>(o => o.UseMySql(Configuration["MYSQL-CONNECTION-STRING"]));
             services.AddSignalR();
             services.AddSingleton<ReportRunnerService>();
             
 
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            const string connectionString = @"Server=localhost;Database=id4test;Uid=id4login;Pwd=wi4e6u;";
+            string connectionString = Configuration["MYSQL-ID4-CONNECTION-STRING"];
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()

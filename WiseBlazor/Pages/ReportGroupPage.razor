@@ -1,0 +1,71 @@
+﻿@page "/group/{Id:int}"
+@inject Backend Backend
+
+<div class="page container">
+    @if (_group == null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <h1>Загрузка</h1>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <h1>@_group.Title</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <MarkdownComponent MarkdownRaw="@_group.Description" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var report in _reportsList)
+                    {
+                        <tr>
+                            <td class="trim-td"><a href="/reports/@report.Id">@report.Title</a></td>
+                            <td class="trim-td">@report.Description</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private List<ReportConfiguration> _reportsList;
+
+    private ReportGroup _group;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var t1 = Backend.GetApiAsync<ReportGroup>($"reportgroups/{Id}");
+        var t2 = Backend.GetApiAsync<Paginated<List<ReportConfiguration>>>($"reports/group/{Id}");
+
+        await Task.WhenAll(t1, t2);
+
+        _group = t1.Result.Response;
+        _reportsList = t2.Result.Response.List;
+
+        StateHasChanged();
+    }
+
+}

@@ -22,9 +22,6 @@ namespace WiseApi
 
         public DbSet<UserGroup> Groups { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => 
-            optionsBuilder.UseMySql("Server=localhost;Database=wise;Uid=wise;Pwd=SuK1jo1Eb44e;");
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ReportRun>().Property(p => p.StartedAt).ValueGeneratedOnAdd();
@@ -69,6 +66,16 @@ namespace WiseApi
                 .WithMany(t => t.ReportGroups)
                 .HasForeignKey(pt => pt.GroupId);
 
+            // many-to-many ReportGroup <-> UserGroup
+            modelBuilder.Entity<ReportGroupUserGroupJoin>()
+                .HasKey(t => new { t.ReportGroupId, t.UserGroupId });
+
+            modelBuilder.Entity<ReportGroupUserGroupJoin>()
+                .HasOne(pt => pt.ReportGroup)
+                .WithMany(p => p.AllowedUserGroups)
+                .HasForeignKey(pt => pt.ReportGroupId);
+            
+            // initial data
             modelBuilder.Entity<UserGroup>().HasData(new UserGroup() {Id = 1, IsAdmin = false, Title = "Пользователь"},
                 new UserGroup() {Id = 2, IsAdmin = true, Title = "Администратор"});
 

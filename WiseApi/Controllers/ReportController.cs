@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Logical;
 using WiseApi;
 using WiseApi.Hubs;
 using WiseDomain;
@@ -165,6 +166,31 @@ namespace WiseApi.Controllers
             }
 
             return reportConfiguration;
+        }
+
+        // GET: api/reports/group/5
+        [HttpGet("group/{id}")]
+        public async Task<ActionResult<Paginated<List<ReportConfiguration>>>> GetGroupReports(int id, int page = 1)
+        {
+            var paginated = new Paginated<List<ReportConfiguration>>
+            {
+                ItemsPerPage = 20,
+                Page = page
+            };
+
+            paginated.List = await _context.Reports.Where(r => r.ReportGroups.Any(rg => rg.GroupId == id && rg.ReportId == r.Id)).OrderByDescending(r => r.UpdatedAt).Skip(paginated.Skip).Take(paginated.ItemsPerPage).ToListAsync();
+            
+            if (paginated.List == null)
+            {
+                return NotFound();
+            }
+
+            if (paginated.Page == 1 && paginated.List.Count < paginated.ItemsPerPage)
+                paginated.TotalPages = 1;
+            else
+                paginated.TotalPages = await _context.Runs.Where(r => r.Report.Id == id).CountAsync();
+
+            return paginated;
         }
 
         // GET: api/reports/5/runs

@@ -1,4 +1,6 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@inject Backend Backend
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">Wise</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -12,16 +14,36 @@
                 <span class="oi oi-home" aria-hidden="true"></span> История
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="providers">
-                <span class="fas fa-database" aria-hidden="true"></span> Источники
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="reports">
-                <span class="oi oi-document" aria-hidden="true"></span> Отчеты
-            </NavLink>
-        </li>
+        @if (_groups != null)
+        {
+            @foreach (var group in _groups)
+            {
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="@($"group/{group.Id}")">
+                        <span class="fas fa-stream" aria-hidden="true"></span> @group.Title
+                    </NavLink>
+                </li>
+            }
+        }
+        <AuthorizeView Roles="admin">
+            <Authorized>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="providers">
+                        <span class="fas fa-database" aria-hidden="true"></span> Источники
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="reports">
+                        <span class="oi oi-document" aria-hidden="true"></span> Отчеты
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="users">
+                        <span class="fas fa-users-cog" aria-hidden="true"></span> Пользователи
+                    </NavLink>
+                </li>
+            </Authorized>
+        </AuthorizeView>
     </ul>
 </div>
 
@@ -30,8 +52,19 @@
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
+    private List<ReportGroup> _groups;
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Backend.GetApiAsync<List<ReportGroup>>("reportgroups");
+
+        _groups = resp.Response;
+        StateHasChanged();
+    }
+
 }

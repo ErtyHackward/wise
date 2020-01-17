@@ -4,3 +4,4 @@
 */obj/*
 WiseApi/wwwroot/*
 WiseApi/tempkey.rsa
+*.user
