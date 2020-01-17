@@ -30,13 +30,13 @@ namespace WiseApi
             
             services.AddControllers();
             services.AddCors();
-            services.AddDbContext<WiseContext>(o => o.UseMySql(Configuration["MYSQL-CONNECTION-STRING"]));
+            services.AddDbContext<WiseContext>(o => o.UseMySql(Configuration["MYSQL_CONNECTION_STRING"]));
             services.AddSignalR();
             services.AddSingleton<ReportRunnerService>();
             
 
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            string connectionString = Configuration["MYSQL-ID4-CONNECTION-STRING"];
+            string connectionString = Configuration["MYSQL_ID4_CONNECTION_STRING"];
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()

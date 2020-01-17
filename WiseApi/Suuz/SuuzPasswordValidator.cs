@@ -30,7 +30,7 @@ namespace WiseApi
         {
             var client = new HttpClient();
 
-            client.DefaultRequestHeaders.Add("x-suuz-api-key", _configuration["SUUZ-KEY"]);
+            client.DefaultRequestHeaders.Add("x-suuz-api-key", _configuration["SUUZ_KEY"]);
 
             return client;
         }
