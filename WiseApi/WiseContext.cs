@@ -22,6 +22,11 @@ namespace WiseApi
 
         public DbSet<UserGroup> Groups { get; set; }
 
+        public WiseContext(DbContextOptions<WiseContext> options) : base(options)
+        {
+            
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ReportRun>().Property(p => p.StartedAt).ValueGeneratedOnAdd();
