@@ -26,7 +26,10 @@ namespace WiseApi
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Literate)
                 .CreateLogger();
 
-            CreateHostBuilder(args).Build().Run();
+            var builder = CreateHostBuilder(args);
+
+            builder.ConfigureAppConfiguration(b => b.AddEnvironmentVariables());
+            builder.Build().Run();
         }
 
         public static IWebHostBuilder CreateHostBuilder(string[] args) =>
