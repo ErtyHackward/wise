@@ -178,7 +178,7 @@ namespace WiseApi
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
             {
-                new ApiResource()
+                new ApiResource("wiseapi")
                 {
                     Scopes = { new Scope("wiseapi", "Main Wise API")
                         {
