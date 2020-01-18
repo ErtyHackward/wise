@@ -16,6 +16,10 @@ namespace WiseBlazor.Components
 {
     public class Backend : ComponentBase
     {
+        public static Uri Uri { get; set; } = new Uri("http://localhost:5000/");
+
+        private Uri _apiBaseUri = new Uri(Uri, "api/");
+
         protected ILogger<Backend> Logger { get; set; }
         public ISyncLocalStorageService LocalStorage { get; }
         public HttpClient HttpClient { get; }
@@ -196,11 +200,6 @@ namespace WiseBlazor.Components
                 return new ServerResponse<T> { ErrorText = x.Message, ErrorCode = 1 };
             }
         }
-
-        public static Uri Uri => new Uri("http://localhost:5000/");
-
-        private Uri _apiBaseUri = new Uri(Uri, "api/");
-        
 
         /// <summary>
         /// 

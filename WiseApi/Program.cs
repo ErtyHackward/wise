@@ -28,7 +28,7 @@ namespace WiseApi
 
             var builder = CreateHostBuilder(args);
 
-            builder.ConfigureAppConfiguration(b => b.AddEnvironmentVariables());
+            builder.ConfigureAppConfiguration(b => b.AddEnvironmentVariables("DOTNET_"));
             builder.Build().Run();
         }
 
