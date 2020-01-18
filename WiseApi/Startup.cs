@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using NLog;
 using WiseApi.Hubs;
 using ApiResource = IdentityServer4.Models.ApiResource;
@@ -52,6 +53,8 @@ namespace WiseApi
 
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             string connectionString = Configuration["MYSQL_ID4_CONNECTION_STRING"];
+
+            IdentityModelEventSource.ShowPII = true;
 
             services.AddIdentityServer( o => o.IssuerUri = Program.LocalUri)
                 .AddDeveloperSigningCredential()
