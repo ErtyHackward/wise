@@ -56,7 +56,11 @@ namespace WiseApi
 
             IdentityModelEventSource.ShowPII = true;
 
-            services.AddIdentityServer( o => o.IssuerUri = Program.LocalUri)
+            services.AddIdentityServer( o =>
+                {
+                    o.IssuerUri = Program.LocalUri;
+                    o.PublicOrigin = Program.LocalUri;
+                })
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(options =>
                 {
