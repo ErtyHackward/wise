@@ -5,6 +5,7 @@ using System.Reflection;
 using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.EntityFramework.Mappers;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
@@ -20,6 +21,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using WiseApi.Hubs;
+using ApiResource = IdentityServer4.Models.ApiResource;
+using Client = IdentityServer4.Models.Client;
+using IdentityResource = IdentityServer4.Models.IdentityResource;
+using Secret = IdentityServer4.Models.Secret;
 
 namespace WiseApi
 {
@@ -159,7 +164,10 @@ namespace WiseApi
                 {
                     foreach (var resource in Config.Apis)
                     {
-                        context.ApiResources.Add(resource.ToEntity());
+                        var entity = resource.ToEntity();
+                        entity.Scopes[0].UserClaims.Add(new ApiScopeClaim() { Type = "role"});
+                        entity.Scopes[0].UserClaims.Add(new ApiScopeClaim() { Type = "group" });
+                        context.ApiResources.Add(entity);
                     }
                     context.SaveChanges();
                 }
@@ -178,14 +186,7 @@ namespace WiseApi
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
             {
-                new ApiResource("wiseapi")
-                {
-                    Scopes = { new Scope("wiseapi", "Main Wise API")
-                        {
-                            UserClaims = { "role", "group" }
-                        }
-                    }
-                }
+                new ApiResource("wiseapi", "Main Wise API", new []{ "role", "group" })
             };
 
         public static IEnumerable<Client> Clients =>
