@@ -6,6 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\_content\blazor.extensions.logging.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="wwwroot\_content\Blazor.Extensions.SignalR.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazor.Extensions.Logging" Version="1.1.0-preview2" />
     <PackageReference Include="Blazor.Extensions.SignalR" Version="1.1.0-preview3" />
     <PackageReference Include="BlazorDateRangePicker" Version="2.0.0" />
@@ -24,15 +33,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WiseDomain\WiseDomain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="_content\blazor.extensions.logging.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="_content\Blazor.Extensions.SignalR.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
