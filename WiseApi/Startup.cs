@@ -186,7 +186,7 @@ namespace WiseApi
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
             {
-                new ApiResource("wiseapi", "Main Wise API", new []{ "role", "group" })
+                new ApiResource("wiseapi", "Main Wise API")
             };
 
         public static IEnumerable<Client> Clients =>
