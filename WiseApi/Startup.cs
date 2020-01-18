@@ -110,6 +110,7 @@ namespace WiseApi
 
         private void InitializeWiseDatabase(IApplicationBuilder app)
         {
+            Logger.Info("Checking wise database...");
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 var wiseContext = serviceScope.ServiceProvider.GetRequiredService<WiseContext>();
@@ -123,6 +124,7 @@ namespace WiseApi
 
         private void InitializeIdentityServerDatabase(IApplicationBuilder app)
         {
+            Logger.Info("Checking id4 database...");
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 var grantContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
@@ -176,7 +178,7 @@ namespace WiseApi
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
             {
-                new ApiResource("wiseapi", "Main Wise API", new[] { "role", "group" })
+                new ApiResource("wiseapi", "Main Wise API") { UserClaims = {"role", "group"}}
             };
 
         public static IEnumerable<Client> Clients =>
