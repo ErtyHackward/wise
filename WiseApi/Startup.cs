@@ -75,7 +75,7 @@ namespace WiseApi
                 o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddIdentityServerAuthentication(options =>
             {
-                options.Authority = "http://localhost:5000";
+                options.Authority = Program.LocalUri;
                 options.ApiName = "wiseapi";
                 options.RequireHttpsMetadata = false;
                 options.RoleClaimType = JwtClaimTypes.Role;

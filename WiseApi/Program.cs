@@ -14,10 +14,20 @@ namespace WiseApi
 {
     public class Program
     {
+        public static string LocalUri { get; set; } = "http://wise.bolshoe.tv:5002/";
+
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public static void Main(string[] args)
         {
             Logger.Info("Wise service startup");
+
+            // --api=http://localhost:5000
+            foreach (var arg in args)
+            {
+                if (arg.StartsWith("--api="))
+                    LocalUri = arg.Substring(6);
+            }
+
             var builder = CreateHostBuilder(args);
 
             builder.ConfigureAppConfiguration(b => b.AddEnvironmentVariables("DOTNET_"));
