@@ -16,7 +16,7 @@ namespace WiseBlazor.Components
 {
     public class Backend : ComponentBase
     {
-        public static Uri Uri { get; set; } = new Uri("http://wise.bolshoe.tv:6000/");
+        public static Uri Uri { get; set; } = new Uri("http://wise.bolshoe.tv:5002/");
 
         private Uri _apiBaseUri = new Uri(Uri, "api/");
 
