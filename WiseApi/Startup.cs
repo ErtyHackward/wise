@@ -18,12 +18,15 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NLog;
 using WiseApi.Hubs;
 
 namespace WiseApi
 {
     public class Startup
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -86,6 +89,7 @@ namespace WiseApi
             }
 
             InitializeIdentityServerDatabase(app);
+            InitializeWiseDatabase(app);
             
             app.UseRouting();
             app.UseStaticFiles();
@@ -104,6 +108,19 @@ namespace WiseApi
             });
         }
 
+        private void InitializeWiseDatabase(IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var wiseContext = serviceScope.ServiceProvider.GetRequiredService<WiseContext>();
+
+                if ((wiseContext.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
+                    return;
+                Logger.Info("Wise database does not exist, creating...");
+                wiseContext.Database.Migrate();
+            }
+        }
+
         private void InitializeIdentityServerDatabase(IApplicationBuilder app)
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
@@ -112,7 +129,8 @@ namespace WiseApi
 
                 if ((grantContext.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
                     return;
-                    
+
+                Logger.Info("IdentityServer database does not exist, creating...");
                 grantContext.Database.Migrate();
 
                 var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
