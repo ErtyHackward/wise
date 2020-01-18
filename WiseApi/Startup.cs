@@ -53,7 +53,7 @@ namespace WiseApi
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             string connectionString = Configuration["MYSQL_ID4_CONNECTION_STRING"];
 
-            services.AddIdentityServer()
+            services.AddIdentityServer( o => o.IssuerUri = Program.LocalUri)
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(options =>
                 {
