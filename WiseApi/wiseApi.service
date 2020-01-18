@@ -1,0 +1,16 @@
+﻿[Unit]
+Description=Wise API service
+
+[Service]
+WorkingDirectory=/var/wiseApi
+ExecStart=/usr/bin/dotnet /var/wiseApi/WiseApi.dll
+Restart=always
+# Restart service after 30 seconds if the dotnet service crashes:
+RestartSec=30
+SyslogIdentifier=WISEAPI
+User=erty
+Environment=ASPNETCORE_ENVIRONMENT=Test
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target

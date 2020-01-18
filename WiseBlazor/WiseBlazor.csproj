@@ -26,4 +26,13 @@
     <ProjectReference Include="..\WiseDomain\WiseDomain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="_content\blazor.extensions.logging.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_content\Blazor.Extensions.SignalR.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

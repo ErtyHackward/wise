@@ -1,0 +1,19 @@
+stages:
+  - test
+  - prod
+
+test:
+  stage: test
+  tags:
+    - wise_test
+  script: 'bash /var/build/wise/deploy.sh test'
+  only: 
+    - dev
+
+prod:
+  stage: prod
+  tags:
+    - wise_prod
+  script: 'bash /var/build/wise/deploy.sh prod'
+  only: 
+    - production
