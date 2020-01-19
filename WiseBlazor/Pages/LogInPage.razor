@@ -89,7 +89,7 @@
 
             if (result)
             {
-                if (!string.IsNullOrEmpty(RedirectToLogin.RedirectUri))
+                if (string.IsNullOrEmpty(RedirectToLogin.RedirectUri) || RedirectToLogin.RedirectUri == new Uri(Backend.Uri, "login").AbsoluteUri)
                     RedirectToLogin.RedirectUri = "/";
                 NavigationManager.NavigateTo(RedirectToLogin.RedirectUri);
             }
