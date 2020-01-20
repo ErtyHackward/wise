@@ -132,7 +132,16 @@
 
         RefreshRuns();
 
-        _hubConnection = HubConnectionBuilder.WithUrl("http://localhost:64460/reportsHub", opt => { opt.Transport = HttpTransportType.WebSockets; opt.SkipNegotiation = true; }).Build();
+        _hubConnection = HubConnectionBuilder.WithUrl("http://localhost:64460/reportsHub", opt =>
+        {
+            opt.Transport = HttpTransportType.WebSockets; 
+            opt.SkipNegotiation = true;
+            opt.AccessTokenProvider = async () =>
+            {
+                var token = Backend.AccessToken;
+                return token;
+            };
+        }).Build();
         _hubConnection.On<int, ReportRunStatus>("StatusChanged", StatusChanged);
 
         _hubConnection.OnClose(exc =>

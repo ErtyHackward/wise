@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using NLog;
 using OfficeOpenXml;
 using WiseApi.Hubs;
 using WiseDomain;
@@ -18,6 +19,8 @@ namespace WiseApi
 {
     public class ReportRunnerService 
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         private readonly IServiceScopeFactory _scopeFactory;
 
         public ReportRunnerService(IServiceScopeFactory scopeFactory)
@@ -52,6 +55,7 @@ namespace WiseApi
 
             var hub = scope.ServiceProvider.GetService<IHubContext<ReportsHub>>();
             hub.Clients.Group($"report{reportId}").SendAsync("StatusChanged", runId, status);
+            Logger.Info($"Report status changed {runId} {status}");
         }
 
         public void RunAsync(ReportRun run)
@@ -62,6 +66,7 @@ namespace WiseApi
 
         private async void Run(ReportRun run)
         {
+            Logger.Info($"Starting report generation {run.Id}");
             var config = run.Report;
             var reportParameters = run.CustomParameterValues;
 
@@ -104,7 +109,7 @@ namespace WiseApi
             try
             {
                 UpdateStatus( config.Id, run.Id, ReportRunStatus.Querying);
-
+                Logger.Info($"Query is {resp.FinalQuery}");
                 var connection = Activator.CreateInstance(Type.GetType(providerInfo.DataProviderType)) as IDbConnection;
 
                 connection.ConnectionString = providerInfo.ConnectionString;
@@ -155,6 +160,8 @@ namespace WiseApi
 
                     var dirPath = Path.Combine(env.WebRootPath, "reportfiles", config.Id.ToString(), run.Id.ToString());
 
+                    Logger.Info($"Report directory is {dirPath}");
+
                     if (!Directory.Exists(dirPath))
                         Directory.CreateDirectory(dirPath);
 
@@ -201,6 +208,7 @@ namespace WiseApi
             {
                 UpdateStatus(config.Id, run.Id, ReportRunStatus.Failed, x.Message);
                 resp.ErrorText = x.Message;
+                Logger.Error(x, $"Report execution failed");
             }
         }
     }
