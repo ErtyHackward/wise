@@ -16,7 +16,11 @@ namespace WiseBlazor.Components
 {
     public class Backend : ComponentBase
     {
+#if DEBUG
+        public static Uri Uri { get; set; } = new Uri("http://localhost:5000/");
+#else
         public static Uri Uri { get; set; } = new Uri("http://wise.bolshoe.tv:5002/");
+#endif
 
         private Uri _apiBaseUri = new Uri(Uri, "api/");
 
@@ -211,6 +215,8 @@ namespace WiseBlazor.Components
         {
             try
             {
+                Logger.LogInformation($"GET {relativeUri}");
+
                 if (!await ValidateAccessToken())
                     return new ServerResponse<T> { ErrorText = "Not authenticated", ErrorCode = 2 };
 

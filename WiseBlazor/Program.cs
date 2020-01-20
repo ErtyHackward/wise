@@ -8,13 +8,6 @@ namespace WiseBlazor
     {
         public static void Main(string[] args)
         {
-            // --api=http://localhost:5000
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("--api="))
-                    Backend.Uri = new Uri(arg.Substring(6));
-            }
-
             CreateHostBuilder(args).Build().Run();
         }
 

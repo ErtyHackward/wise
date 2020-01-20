@@ -83,6 +83,7 @@ namespace WiseApi
 
                                 if (isNew)
                                 {
+                                    dbUser.UserGroups = new List<UserGroupJoin>();
                                     dbUser.UserGroups.Add(new UserGroupJoin(){ GroupId = 1, UserId = dbUser.Id});
                                     await _wiseContext.SaveChangesAsync();
                                 }
