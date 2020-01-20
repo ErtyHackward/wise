@@ -132,7 +132,7 @@
 
         RefreshRuns();
 
-        _hubConnection = HubConnectionBuilder.WithUrl("http://localhost:64460/reportsHub", opt =>
+        _hubConnection = HubConnectionBuilder.WithUrl( new Uri(Backend.Uri, "/reportsHub").AbsoluteUri, opt =>
         {
             opt.Transport = HttpTransportType.WebSockets; 
             opt.SkipNegotiation = true;

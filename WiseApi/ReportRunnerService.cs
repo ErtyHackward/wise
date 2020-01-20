@@ -158,6 +158,9 @@ namespace WiseApi
                         resp.ColumnsCount = resp.Columns.Count;
                     }
 
+                    if (string.IsNullOrEmpty(env.WebRootPath))
+                        env.WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
                     var dirPath = Path.Combine(env.WebRootPath, "reportfiles", config.Id.ToString(), run.Id.ToString());
 
                     Logger.Info($"Report directory is {dirPath}");
