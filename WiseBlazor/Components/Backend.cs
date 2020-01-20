@@ -211,8 +211,6 @@ namespace WiseBlazor.Components
         {
             try
             {
-                Logger.LogInformation($"Trying Api get AccessToken: {AccessToken} Auth: {IsAuthenticated}");
-
                 if (!await ValidateAccessToken())
                     return new ServerResponse<T> { ErrorText = "Not authenticated", ErrorCode = 2 };
 
@@ -238,8 +236,8 @@ namespace WiseBlazor.Components
         {
             try
             {
-                //if (!await ValidateAccessToken())
-                //    return null;
+                if (!await ValidateAccessToken())
+                    return new ServerResponse<T> { ErrorText = "Not authenticated", ErrorCode = 2 };
 
                 var result = await HttpClient.PostJsonAsync<T>(new Uri(_apiBaseUri, relativeUri).ToString(), content);
                 return new ServerResponse<T>() { Response = result, Success = true };
@@ -260,8 +258,8 @@ namespace WiseBlazor.Components
         {
             try
             {
-                //if (!await ValidateAccessToken())
-                //    return null;
+                if (!await ValidateAccessToken())
+                    return new ServerResponse { ErrorText = "Not authenticated", ErrorCode = 2 };
 
                 await HttpClient.PutJsonAsync(new Uri(_apiBaseUri, relativeUri).ToString(), content);
                 return new ServerResponse() { Success = true };
@@ -282,8 +280,8 @@ namespace WiseBlazor.Components
         {
             try
             {
-                //if (!await ValidateAccessToken())
-                //    return null;
+                if (!await ValidateAccessToken())
+                    return new ServerResponse { ErrorText = "Not authenticated", ErrorCode = 2 };
 
                 var result = await HttpClient.DeleteAsync(new Uri(_apiBaseUri, relativeUri).ToString());
                 return new ServerResponse() { Success = true };

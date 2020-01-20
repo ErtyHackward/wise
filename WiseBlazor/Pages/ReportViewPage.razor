@@ -136,11 +136,6 @@
         {
             opt.Transport = HttpTransportType.WebSockets; 
             opt.SkipNegotiation = true;
-            opt.AccessTokenProvider = async () =>
-            {
-                var token = Backend.AccessToken;
-                return token;
-            };
         }).Build();
         _hubConnection.On<int, ReportRunStatus>("StatusChanged", StatusChanged);
 
